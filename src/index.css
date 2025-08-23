@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Smooth scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #06B6D4 transparent;
+}
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: #06B6D4; border-radius: 8px; }
+
+/* Selection */
+::selection {
+  background: #06B6D4;
+  color: white;
+}
+
+/* Card gradient ring */
+.card-ring {
+  position: relative;
+}
+.card-ring::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  border-radius: 1rem;
+  background: radial-gradient(1200px circle at var(--x, 50%) var(--y, 50%), rgba(34,197,94,0.25), transparent 25%);
+  transition: opacity 200ms ease;
+  opacity: 0;
+}
+.card-ring:hover::before {
+  opacity: 1;
+}
