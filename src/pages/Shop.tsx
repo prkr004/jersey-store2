@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import FilterBar from '../components/FilterBar'
-import { products } from '../data/products'
+import { products } from '../data/product'
 import ProductCard from '../components/ProductCard'
 import { useSearchParams } from 'react-router-dom'
 

@@ -1,5 +1,5 @@
 import HeroBanner from '../components/HeroBanner'
-import { products } from '../data/products'
+import { products } from '../data/product'
 import ProductCard from '../components/ProductCard'
 import { Link } from 'react-router-dom'
 import MotionButton from '../components/MotionButton'

@@ -1,5 +1,5 @@
 import { useParams } from 'react-router-dom'
-import { productsById } from '../data/products'
+import { productsById } from '../data/product'
 import { useMemo, useState } from 'react'
 import { currency } from '../utils/format'
 import MotionButton from '../components/MotionButton'

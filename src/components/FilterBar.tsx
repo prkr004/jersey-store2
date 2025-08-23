@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { sports as allSports, teams as allTeams, priceMin, priceMax } from '../data/products'
+import { sports as allSports, teams as allTeams, priceMin, priceMax } from '../data/product'
 import MotionButton from './MotionButton'
 import { useSearchParams } from 'react-router-dom'
 
