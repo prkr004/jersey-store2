@@ -41,11 +41,12 @@ export default function Home() {
 }
 
 function Categories() {
+  // Stable placeholder images (can later be swapped with local /public assets)
   const cats = [
-    { name: 'Football', img: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?q=80&w=1200&auto=format&fit=crop' },
-    { name: 'Basketball', img: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?q=80&w=1200&auto=format&fit=crop' },
-    { name: 'Cricket', img: 'https://images.unsplash.com/photo-1521417531039-94a2f8f0f6b4?q=80&w=1200&auto=format&fit=crop' },
-    { name: 'Hockey', img: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?q=80&w=1200&auto=format&fit=crop' }
+    { name: 'Football', img: 'https://placehold.co/800x600/0ea5e9/ffffff?text=Football' },
+    { name: 'Basketball', img: 'https://placehold.co/800x600/f59e0b/111827?text=Basketball' },
+    { name: 'Cricket', img: 'https://placehold.co/800x600/1d4ed8/ffffff?text=Cricket' },
+    { name: 'Hockey', img: 'https://placehold.co/800x600/0ea5e9/111827?text=Hockey' }
   ]
   return (
     <section className="container mx-auto px-4 py-12">

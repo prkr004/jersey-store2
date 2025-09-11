@@ -13,15 +13,18 @@ export type Product = {
   trending?: boolean
 }
 
+// Centralized image references. Currently using stable placeholder CDN URLs (placehold.co) so
+// broken or rate-limited external Unsplash links don't blank the UI.
+// To switch to local assets later: put files in /public/images and change e.g. football1: '/images/football-home.jpg'
 const img = {
-  football1: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?q=80&w=1200&auto=format&fit=crop',
-  football2: 'https://images.unsplash.com/photo-1506704888324-5a5fbe3f02fb?q=80&w=1200&auto=format&fit=crop',
-  basketball1: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?q=80&w=1200&auto=format&fit=crop',
-  basketball2: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?q=80&w=1200&auto=format&fit=crop',
-  cricket1: 'https://images.unsplash.com/photo-1521417531039-94a2f8f0f6b4?q=80&w=1200&auto=format&fit=crop',
-  cricket2: 'https://images.unsplash.com/photo-1547347298-4074fc3086f0?q=80&w=1200&auto=format&fit=crop',
-  baseball1: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?q=80&w=1200&auto=format&fit=crop',
-  hockey1: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?q=80&w=1200&auto=format&fit=crop'
+  football1: 'https://placehold.co/800x600/0ea5e9/ffffff?text=Football+Home',
+  football2: 'https://placehold.co/800x600/1f2937/ffffff?text=Football+Alt',
+  basketball1: 'https://placehold.co/800x600/6d28d9/ffffff?text=Basketball+City',
+  basketball2: 'https://placehold.co/800x600/f59e0b/111827?text=Basketball+Classic',
+  cricket1: 'https://placehold.co/800x600/1d4ed8/ffffff?text=Cricket+ODI',
+  cricket2: 'https://placehold.co/800x600/22c55e/ffffff?text=Cricket+T20',
+  baseball1: 'https://placehold.co/800x600/1e293b/f8fafc?text=Baseball+Home',
+  hockey1: 'https://placehold.co/800x600/0ea5e9/111827?text=Hockey+Pro'
 }
 
 export const products: Product[] = [

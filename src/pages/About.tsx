@@ -14,7 +14,12 @@ export default function About() {
           </div>
         </div>
         <div className="rounded-3xl overflow-hidden">
-          <img src="https://images.unsplash.com/photo-1551958219-acbc608c6377?q=80&w=1600&auto=format&fit=crop" alt="About JerseyX" className="w-full h-full object-cover" />
+          <img
+            // Stable placeholder (swap with /public/about-hero.jpg for a real asset later)
+            src="https://placehold.co/1200x900/22c55e/ffffff?text=Performance+Jerseys"
+            alt="About JerseyX"
+            className="w-full h-full object-cover"
+          />
         </div>
       </div>
     </div>

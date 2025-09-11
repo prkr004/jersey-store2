@@ -49,7 +49,8 @@ export default function HeroBanner() {
             className="rounded-3xl p-2 bg-gradient-to-br from-brand-500/20 to-accent/20"
           >
             <img
-              src="https://images.unsplash.com/photo-1551958219-acbc608c6377?q=80&w=1600&auto=format&fit=crop"
+              // Stable placeholder image (replace with /public/hero.jpg later if you add a real asset)
+              src="https://placehold.co/1200x900/06b6d4/ffffff?text=Elite+Jersey"
               alt="Hero jersey"
               className="rounded-2xl shadow-2xl"
             />
