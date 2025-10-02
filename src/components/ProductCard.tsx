@@ -16,7 +16,7 @@ export default function ProductCard({ product }: { product: Product }) {
         el.style.setProperty('--y', `${((e.clientY - rect.top) / rect.height) * 100}%`)
       }}
     >
-      <Link to={`/product/${product.id}`} className="block">
+  <Link to={`/product/${product.id}`} className="block">
         <div className="relative aspect-[4/3] overflow-hidden">
           <motion.img
             src={product.images[0]}
@@ -36,7 +36,7 @@ export default function ProductCard({ product }: { product: Product }) {
             <h3 className="font-semibold">{product.name}</h3>
             <span className="font-semibold text-brand-600">{currency(product.price)}</span>
           </div>
-          <p className="text-sm text-slate-600 dark:text-slate-400">{product.team} • {product.sport}</p>
+          <p className="text-sm text-slate-600 dark:text-slate-400">{product.team} • {(product as any).sport || 'Sport'}</p>
           <div className="mt-2 flex items-center gap-1 text-amber-400">
             {Array.from({ length: 5 }).map((_, i) => (
               <Star key={i} size={14} fill={i < Math.round(product.rating) ? 'currentColor' : 'none'} />

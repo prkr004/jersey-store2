@@ -1,5 +1,7 @@
 import { NavLink, Route, Routes } from 'react-router-dom'
 import MotionButton from '../components/MotionButton'
+import { useAuth } from '../context/AuthContext'
+import { useState } from 'react'
 
 export default function Account() {
   return (
@@ -34,43 +36,69 @@ function linkClass({ isActive }: { isActive: boolean }) {
 }
 
 function Profile() {
+  const { user, signOut } = useAuth()
+  if (!user) return <div className="text-sm text-slate-600 dark:text-slate-400">You are not signed in.</div>
   return (
     <div>
       <h2 className="font-semibold text-xl">Profile</h2>
-      <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">This is a demo profile screen.</p>
-      <div className="grid sm:grid-cols-2 gap-4 mt-4">
-        <input placeholder="Full Name" className="rounded-xl bg-slate-100 dark:bg-slate-900 px-4 py-2" />
-        <input placeholder="Email" type="email" className="rounded-xl bg-slate-100 dark:bg-slate-900 px-4 py-2" />
-        <input placeholder="Phone" className="rounded-xl bg-slate-100 dark:bg-slate-900 px-4 py-2" />
-        <MotionButton className="sm:col-span-2">Save Changes</MotionButton>
+      <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">Signed in as {user.email}</p>
+      <div className="mt-4">
+        <MotionButton variant="outline" onClick={() => signOut()}>Sign Out</MotionButton>
       </div>
     </div>
   )
 }
 
 function Login() {
+  const { signIn, user } = useAuth()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+  if (user) return <div className="text-sm text-slate-600 dark:text-slate-400">Already signed in.</div>
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setLoading(true)
+    const { error } = await signIn(email, password)
+    setError(error || null)
+    setLoading(false)
+  }
   return (
     <div>
       <h2 className="font-semibold text-xl">Login</h2>
-      <div className="grid gap-4 mt-4">
-        <input placeholder="Email" type="email" className="rounded-xl bg-slate-100 dark:bg-slate-900 px-4 py-2" />
-        <input placeholder="Password" type="password" className="rounded-xl bg-slate-100 dark:bg-slate-900 px-4 py-2" />
-        <MotionButton>Sign In</MotionButton>
-      </div>
+      <form onSubmit={onSubmit} className="grid gap-4 mt-4">
+        <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="Email" type="email" required className="rounded-xl bg-slate-100 dark:bg-slate-900 px-4 py-2" />
+        <input value={password} onChange={e=>setPassword(e.target.value)} placeholder="Password" type="password" required className="rounded-xl bg-slate-100 dark:bg-slate-900 px-4 py-2" />
+        {error && <div className="text-sm text-red-600">{error}</div>}
+        <MotionButton disabled={loading}>{loading ? 'Signing in...' : 'Sign In'}</MotionButton>
+      </form>
     </div>
   )
 }
 
 function Signup() {
+  const { signUp, user } = useAuth()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+  if (user) return <div className="text-sm text-slate-600 dark:text-slate-400">Already signed in.</div>
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setLoading(true)
+    const { error } = await signUp(email, password)
+    setError(error || null)
+    setLoading(false)
+  }
   return (
     <div>
       <h2 className="font-semibold text-xl">Create Account</h2>
-      <div className="grid gap-4 mt-4">
-        <input placeholder="Full Name" className="rounded-xl bg-slate-100 dark:bg-slate-900 px-4 py-2" />
-        <input placeholder="Email" type="email" className="rounded-xl bg-slate-100 dark:bg-slate-900 px-4 py-2" />
-        <input placeholder="Password" type="password" className="rounded-xl bg-slate-100 dark:bg-slate-900 px-4 py-2" />
-        <MotionButton>Create Account</MotionButton>
-      </div>
+      <form onSubmit={onSubmit} className="grid gap-4 mt-4">
+        <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="Email" type="email" required className="rounded-xl bg-slate-100 dark:bg-slate-900 px-4 py-2" />
+        <input value={password} onChange={e=>setPassword(e.target.value)} placeholder="Password" type="password" required className="rounded-xl bg-slate-100 dark:bg-slate-900 px-4 py-2" />
+        {error && <div className="text-sm text-red-600">{error}</div>}
+        <MotionButton disabled={loading}>{loading ? 'Creating...' : 'Create Account'}</MotionButton>
+      </form>
     </div>
   )
 }

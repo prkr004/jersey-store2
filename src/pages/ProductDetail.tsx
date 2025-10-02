@@ -1,23 +1,32 @@
 import { useParams } from 'react-router-dom'
 import { productsById } from '../data/product'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { currency } from '../utils/format'
 import MotionButton from '../components/MotionButton'
 import { useCart } from '../context/CartContext'
 import { motion } from 'framer-motion'
+import { useProductBySlug } from '../hooks/useProducts'
 
 export default function ProductDetail() {
-  const { id } = useParams<{ id: string }>()
-  const product = id ? productsById[id] : null
+  const { id } = useParams<{ id: string }>() // currently using id path param
+  // Try local first (legacy) then attempt supabase by treating id as slug.
+  const localProduct = id ? productsById[id] : null
+  const { product: remoteProduct, loading } = useProductBySlug(id)
+  const product = remoteProduct || localProduct
   const [size, setSize] = useState(product?.sizes[0] ?? '')
   const [imgIndex, setImgIndex] = useState(0)
   const { add } = useCart()
+
+  useEffect(() => {
+    if (product) setSize(product.sizes[0] ?? '')
+  }, [product])
 
   const related = useMemo(
     () => (product ? Object.values(productsById).filter((p) => p.sport === product.sport && p.id !== product.id).slice(0, 4) : []),
     [product]
   )
 
+  if (loading && !product) return <div className="container mx-auto px-4 py-16">Loading...</div>
   if (!product) return <div className="container mx-auto px-4 py-16">Product not found.</div>
 
   return (
@@ -37,7 +46,7 @@ export default function ProductDetail() {
         </div>
         <div>
           <h1 className="font-display text-4xl">{product.name}</h1>
-          <div className="mt-2 text-slate-600 dark:text-slate-400">{product.team} • {product.sport}</div>
+          <div className="mt-2 text-slate-600 dark:text-slate-400">{product.team} • {(product as any).sport || 'Sport'}</div>
           <div className="mt-3 text-2xl font-semibold text-brand-600">{currency(product.price)}</div>
 
           <p className="mt-6 text-slate-700 dark:text-slate-300">{product.description}</p>

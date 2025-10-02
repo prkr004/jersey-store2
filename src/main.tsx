@@ -5,15 +5,20 @@ import App from './App'
 import './index.css'
 import { ThemeProvider } from './context/ThemeContext'
 import { CartProvider } from './context/CartContext'
+import { AuthProvider } from './context/AuthContext'
+import Chatbot from './components/Chatbot'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ThemeProvider>
-      <CartProvider>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
-      </CartProvider>
+      <AuthProvider>
+        <CartProvider>
+          <BrowserRouter>
+            <App />
+            <Chatbot />
+          </BrowserRouter>
+        </CartProvider>
+      </AuthProvider>
     </ThemeProvider>
   </StrictMode>
 )

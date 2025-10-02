@@ -1,13 +1,16 @@
 import HeroBanner from '../components/HeroBanner'
-import { products } from '../data/product'
+import { products as staticProducts } from '../data/product'
 import ProductCard from '../components/ProductCard'
 import { Link } from 'react-router-dom'
 import MotionButton from '../components/MotionButton'
 import { motion } from 'framer-motion'
+import { useProducts } from '../hooks/useProducts'
 
 export default function Home() {
-  const featured = products.filter((p) => p.featured).slice(0, 6)
-  const trending = products.filter((p) => p.trending).slice(0, 6)
+  const { products, loading } = useProducts()
+  const list = products ?? staticProducts
+  const featured = list.filter((p) => p.featured).slice(0, 6)
+  const trending = list.filter((p) => p.trending).slice(0, 6)
 
   return (
     <>
@@ -19,6 +22,7 @@ export default function Home() {
           <Link to="/shop"><MotionButton variant="outline">View All</MotionButton></Link>
         </div>
         <div className="mt-6 grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {loading && !products && Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-72 rounded-2xl bg-slate-200 dark:bg-slate-800 animate-pulse" />)}
           {featured.map((p) => <ProductCard key={p.id} product={p} />)}
         </div>
       </section>
@@ -31,6 +35,7 @@ export default function Home() {
           <Link to="/shop"><MotionButton variant="outline">Shop Deals</MotionButton></Link>
         </div>
         <div className="mt-6 grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {loading && !products && Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-72 rounded-2xl bg-slate-200 dark:bg-slate-800 animate-pulse" />)}
           {trending.map((p) => <ProductCard key={p.id} product={p} />)}
         </div>
       </section>
