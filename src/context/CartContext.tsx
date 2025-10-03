@@ -1,22 +1,26 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import type { Product } from '../data/product'
 import { productsById } from '../data/product'
+import { supabase } from '../lib/supabaseClient'
 
+export type ProductSnapshot = Pick<Product, 'id' | 'name' | 'price' | 'images' | 'team' | 'sport' | 'sizes' | 'description'>
 export type CartItem = {
-  id: string // product id
+  id: string // product id (slug or legacy id)
   size: string
   qty: number
+  product?: ProductSnapshot // snapshot to avoid relying solely on in-memory catalogs
 }
 
 type CartContextType = {
   items: CartItem[]
-  add: (id: string, size: string, qty?: number) => void
+  add: (id: string, size: string, qty?: number, productSnapshot?: ProductSnapshot) => void
   remove: (id: string, size: string) => void
   update: (id: string, size: string, qty: number) => void
   clear: () => void
   count: number
   total: number
-  detailed: Array<CartItem & { product: Product }>
+  detailed: Array<CartItem & { product: ProductSnapshot }>
+  replaceWithSingle: (id: string, size: string, qty: number, productSnapshot?: ProductSnapshot) => void
 }
 
 const CartContext = createContext<CartContextType | null>(null)
@@ -33,16 +37,21 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items))
   }, [items])
 
-  const add: CartContextType['add'] = (id, size, qty = 1) => {
+  const add: CartContextType['add'] = (id, size, qty = 1, productSnapshot) => {
     setItems((prev) => {
       const i = prev.findIndex((p) => p.id === id && p.size === size)
       if (i > -1) {
         const copy = [...prev]
-        copy[i] = { ...copy[i], qty: copy[i].qty + qty }
+        const existing = copy[i]
+        copy[i] = { ...existing, qty: existing.qty + qty, product: existing.product || productSnapshot }
         return copy
       }
-      return [...prev, { id, size, qty }]
+      return [...prev, { id, size, qty, product: productSnapshot }]
     })
+  }
+
+  const replaceWithSingle: CartContextType['replaceWithSingle'] = (id, size, qty, productSnapshot) => {
+    setItems([{ id, size, qty, product: productSnapshot }])
   }
 
   const remove: CartContextType['remove'] = (id, size) =>
@@ -55,22 +64,63 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const count = useMemo(() => items.reduce((a, b) => a + b.qty, 0), [items])
 
-  const detailed = useMemo(
-    () =>
-      items
-        .map((it) => {
-          const product = productsById[it.id]
-          if (!product) return null
-          return { ...it, product }
-        })
-        .filter(Boolean) as Array<CartItem & { product: Product }>,
-    [items]
-  )
+  const [hydrating, setHydrating] = useState(false)
 
-  const total = useMemo(
-    () => detailed.reduce((a, b) => a + b.product.price * b.qty, 0),
-    [detailed]
-  )
+  // Build detailed list using snapshot OR local catalog fallback.
+  const detailed = useMemo(() => {
+    return items
+      .map((it) => {
+        const prod = it.product || productsById[it.id]
+        if (!prod) return null
+        // Normalize to ProductSnapshot shape if from catalog
+        const snapshot: ProductSnapshot = it.product || {
+          id: prod.id,
+          name: prod.name,
+          price: prod.price,
+            images: prod.images,
+          team: prod.team,
+          sport: (prod as any).sport || 'Sport',
+          sizes: prod.sizes,
+          description: prod.description
+        }
+        return { ...it, product: snapshot }
+      })
+      .filter(Boolean) as Array<CartItem & { product: ProductSnapshot }>
+  }, [items])
+
+  // Hydrate any missing products (remote) via Supabase if we have ids without snapshot and not in local catalog.
+  useEffect(() => {
+    const missing = items.filter(i => !i.product && !productsById[i.id])
+    if (!missing.length || hydrating) return
+    let cancelled = false
+    async function fetchMissing() {
+      setHydrating(true)
+      try {
+        for (const m of missing) {
+          const { data, error } = await supabase.from('products').select('*').eq('slug', m.id).maybeSingle()
+          if (cancelled) return
+          if (data && !error) {
+            setItems(prev => prev.map(p => p.id === m.id && p.size === m.size ? { ...p, product: {
+              id: data.slug || data.id,
+              name: data.name,
+              price: data.price_cents / 100,
+              images: data.images || [],
+              team: data.team || 'Unknown Team',
+              sport: 'Football',
+              sizes: data.sizes || [],
+              description: data.description || ''
+            }} : p))
+          }
+        }
+      } finally {
+        if (!cancelled) setHydrating(false)
+      }
+    }
+    fetchMissing()
+    return () => { cancelled = true }
+  }, [items, hydrating])
+
+  const total = useMemo(() => detailed.reduce((a, b) => a + b.product.price * b.qty, 0), [detailed])
 
   const value: CartContextType = {
     items,
@@ -80,7 +130,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     clear,
     count,
     total,
-    detailed
+    detailed,
+    replaceWithSingle
   }
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>

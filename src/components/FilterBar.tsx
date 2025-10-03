@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
-import { sports as allSports, teams as allTeams, priceMin, priceMax } from '../data/product'
+import { sports as allSports, teams as allTeams } from '../data/product'
+import { currency } from '../utils/format'
 import MotionButton from './MotionButton'
 import { useSearchParams } from 'react-router-dom'
 
@@ -9,7 +10,10 @@ export default function FilterBar() {
   const q = params.get('q') ?? ''
   const sport = params.get('sport') ?? ''
   const team = params.get('team') ?? ''
-  const price = Number(params.get('price') ?? priceMax)
+  // Force INR price band between 1000 and 3000 irrespective of original static dataset pricing extremes.
+  const RANGE_MIN = 1000
+  const RANGE_MAX = 3000
+  const price = Number(params.get('price') ?? RANGE_MAX)
 
   const update = (key: string, val: string) => {
     const p = new URLSearchParams(params)
@@ -59,12 +63,13 @@ export default function FilterBar() {
         <label className="text-sm text-slate-600 dark:text-slate-400">Max Price:</label>
         <input
           type="range"
-          min={priceMin}
-          max={priceMax}
+          min={RANGE_MIN}
+          max={RANGE_MAX}
+          step={100}
           value={price}
           onChange={(e) => update('price', e.target.value)}
         />
-        <span className="text-sm">${price}</span>
+        <span className="text-sm font-medium">{currency(price)}</span>
       </div>
 
       <MotionButton variant="outline" onClick={clearAll}>Clear</MotionButton>

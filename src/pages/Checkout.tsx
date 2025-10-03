@@ -1,9 +1,12 @@
 import MotionButton from '../components/MotionButton'
 import { useCart } from '../context/CartContext'
 import { currency } from '../utils/format'
+import UPIPayment from '../components/UPIPayment'
+import { useState } from 'react'
 
 export default function Checkout() {
   const { total, detailed, clear } = useCart()
+  const [orderPlaced, setOrderPlaced] = useState(false)
 
   return (
     <div className="container mx-auto px-4 py-10">
@@ -22,17 +25,23 @@ export default function Checkout() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-200/60 dark:border-slate-800 p-6">
-            <h2 className="font-semibold mb-4">Payment Details</h2>
-            <div className="grid gap-4">
-              <input placeholder="Cardholder name" className="rounded-xl bg-slate-100 dark:bg-slate-900 px-4 py-2" />
-              <input placeholder="Card number" className="rounded-xl bg-slate-100 dark:bg-slate-900 px-4 py-2" />
-              <div className="grid grid-cols-2 gap-4">
-                <input placeholder="Expiry (MM/YY)" className="rounded-xl bg-slate-100 dark:bg-slate-900 px-4 py-2" />
-                <input placeholder="CVC" className="rounded-xl bg-slate-100 dark:bg-slate-900 px-4 py-2" />
+          <div className="rounded-2xl border border-slate-200/60 dark:border-slate-800 p-6 space-y-6">
+            <h2 className="font-semibold">Payment</h2>
+            <UPIPayment
+              amount={total}
+              config={{
+                payeeVPA: 'merchant@upi',
+                payeeName: 'JerseyX Store',
+                note: 'Order Payment',
+              }}
+              onSimulateSuccess={() => { setOrderPlaced(true); clear() }}
+            />
+            {orderPlaced && (
+              <div className="rounded-xl bg-green-50 dark:bg-green-900/30 border border-green-300/50 dark:border-green-700 p-4 text-sm text-green-700 dark:text-green-300">
+                <p className="font-medium">Payment Recorded</p>
+                <p className="mt-1">Thank you! Your order is being processed. A confirmation email would be sent in a real deployment.</p>
               </div>
-            </div>
-            <MotionButton className="mt-4" onClick={() => { alert('Demo checkout complete!'); clear(); }}>Pay {currency(total)}</MotionButton>
+            )}
           </div>
         </div>
 

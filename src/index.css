@@ -2,6 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Minimal markdown styling for chatbot responses */
+.markdown-body :where(h1,h2,h3,h4){@apply font-semibold mt-3 mb-1 text-slate-900 dark:text-slate-100;}
+.markdown-body :where(p){@apply my-2 leading-relaxed;}
+.markdown-body :where(ul){@apply list-disc pl-5 my-2 space-y-1;}
+.markdown-body :where(ol){@apply list-decimal pl-5 my-2 space-y-1;}
+.markdown-body :where(code){@apply font-mono bg-slate-200/70 dark:bg-slate-700/60 px-1 py-0.5 rounded;}
+.markdown-body :where(pre){@apply bg-slate-900 text-slate-100 p-3 rounded overflow-x-auto text-xs my-3;}
+.markdown-body table{@apply w-full text-left border-collapse my-3 text-xs;} 
+.markdown-body thead{@apply bg-slate-200 dark:bg-slate-700;} 
+.markdown-body th{ @apply font-medium; }
+.markdown-body td,.markdown-body th{@apply border border-slate-300 dark:border-slate-600 px-2 py-1;} 
+.markdown-body a{@apply text-indigo-600 dark:text-indigo-400 underline;}
+
 /* Smooth scrollbar */
 * {
   scrollbar-width: thin;

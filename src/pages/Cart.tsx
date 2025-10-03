@@ -1,11 +1,23 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import CartItem from '../components/CartItem'
 import MotionButton from '../components/MotionButton'
 import { currency } from '../utils/format'
+import { useState, useEffect } from 'react'
+import CheckoutWizard from '../components/CheckoutWizard'
 
 export default function Cart() {
   const { detailed, total, clear } = useCart()
+  const [open, setOpen] = useState(false)
+  const location = useLocation()
+  // Auto open checkout when arriving from Buy Now
+  useEffect(() => {
+    if ((location.state as any)?.checkout && detailed.length) {
+      setOpen(true)
+      // Clear the state so back nav doesn't reopen
+      window.history.replaceState({}, document.title)
+    }
+  }, [location.state, detailed.length])
   const hasItems = detailed.length > 0
 
   return (
@@ -51,9 +63,17 @@ export default function Cart() {
               <span>Total</span>
               <span>{currency(total)}</span>
             </div>
-            <Link to="/checkout"><MotionButton className="w-full mt-4">Checkout</MotionButton></Link>
+            <MotionButton className="w-full mt-4" onClick={() => setOpen(true)}>Checkout</MotionButton>
           </div>
         </div>
+      )}
+      {open && (
+        <CheckoutWizard
+          total={total}
+          items={detailed}
+          onClose={() => setOpen(false)}
+          onComplete={() => { setOpen(false); clear(); }}
+        />
       )}
     </div>
   )

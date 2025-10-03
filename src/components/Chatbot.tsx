@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { sendChat } from '../services/chat'
+import { mdToHtml } from '../utils/formatMarkdown'
 // Chatbot uses /api/chat proxy -> Gemini. Set GEMINI_API_KEY in deployment environment (see api/README_CHAT.md).
 
 interface Message { role: 'user' | 'assistant'; content: string }
@@ -45,11 +46,28 @@ export default function Chatbot() {
             <button onClick={() => setOpen(false)} className="text-slate-500 hover:text-slate-800 dark:hover:text-slate-200" aria-label="Close chat">✕</button>
           </div>
           <div ref={listRef} className="flex-1 overflow-y-auto p-3 space-y-2 text-sm">
-            {messages.map((m,i) => (
-              <div key={i} className={m.role === 'user' ? 'text-right' : ''}>
-                <div className={`inline-block px-3 py-2 rounded-lg max-w-[85%] ${m.role === 'user' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100'}`}>{m.content}</div>
-              </div>
-            ))}
+            {messages.map((m,i) => {
+              const isUser = m.role === 'user'
+              return (
+                <div key={i} className={isUser ? 'text-right' : ''}>
+                  {isUser ? (
+                    <div className="inline-block px-3 py-2 rounded-lg max-w-[85%] bg-indigo-600 text-white whitespace-pre-wrap text-left">{m.content}</div>
+                  ) : (
+                    <div className="group relative inline-block rounded-lg max-w-[85%] bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700 px-3 py-2 text-left">
+                      <div
+                        className="prose prose-sm dark:prose-invert max-w-none markdown-body"
+                        dangerouslySetInnerHTML={{ __html: mdToHtml(m.content) }}
+                      />
+                      <button
+                        onClick={() => navigator.clipboard.writeText(m.content)}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity absolute top-1 right-1 text-[10px] bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded px-1 py-0.5"
+                        aria-label="Copy response"
+                      >Copy</button>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
             {loading && <div className="text-xs text-slate-400">Thinking...</div>}
             {!messages.length && !loading && <div className="text-xs text-slate-400">Ask me about products, sizes, or general info.</div>}
           </div>
@@ -58,7 +76,7 @@ export default function Chatbot() {
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Type a message..."
+                placeholder="Ask about products, sizing, deals..."
                 className="flex-1 rounded-md bg-slate-100 dark:bg-slate-800 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
               />
               <button type="submit" disabled={loading} className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white px-3 py-1 rounded-md text-sm">Send</button>

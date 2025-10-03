@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { productsById } from '../data/product'
 import { useEffect, useMemo, useState } from 'react'
 import { currency } from '../utils/format'
@@ -15,7 +15,9 @@ export default function ProductDetail() {
   const product = remoteProduct || localProduct
   const [size, setSize] = useState(product?.sizes[0] ?? '')
   const [imgIndex, setImgIndex] = useState(0)
-  const { add } = useCart()
+  const { add, replaceWithSingle } = useCart()
+  const [added, setAdded] = useState(false)
+  const navigate = useNavigate()
 
   useEffect(() => {
     if (product) setSize(product.sizes[0] ?? '')
@@ -66,8 +68,42 @@ export default function ProductDetail() {
             </div>
           </div>
 
-          <div className="mt-6 flex items-center gap-3">
-            <MotionButton onClick={() => add(product.id, size || product.sizes[0], 1)} className="px-6 py-3">Add to Cart</MotionButton>
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            <MotionButton
+              onClick={() => {
+                add(product.id, size || product.sizes[0], 1, {
+                  id: product.id,
+                  name: product.name,
+                  price: product.price,
+                  images: product.images,
+                  team: product.team,
+                  sport: (product as any).sport || 'Sport',
+                  sizes: product.sizes,
+                  description: product.description
+                })
+                setAdded(true)
+                setTimeout(() => setAdded(false), 3000)
+              }}
+              className="px-6 py-3"
+            >{added ? 'Added ✓' : 'Add to Cart'}</MotionButton>
+            <MotionButton
+              variant="primary"
+              className="px-6 py-3 bg-brand-600 hover:bg-brand-500"
+              onClick={() => {
+                replaceWithSingle(product.id, size || product.sizes[0], 1, {
+                  id: product.id,
+                  name: product.name,
+                  price: product.price,
+                  images: product.images,
+                  team: product.team,
+                  sport: (product as any).sport || 'Sport',
+                  sizes: product.sizes,
+                  description: product.description
+                })
+                // Navigate to cart and trigger checkout wizard via state flag
+                navigate('/cart', { state: { checkout: true } })
+              }}
+            >Buy Now</MotionButton>
             <MotionButton variant="outline" className="px-6 py-3">Wishlist</MotionButton>
           </div>
         </div>

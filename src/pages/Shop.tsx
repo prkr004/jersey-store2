@@ -10,7 +10,10 @@ export default function Shop() {
   const q = (params.get('q') ?? '').toLowerCase()
   const sport = params.get('sport') ?? ''
   const team = params.get('team') ?? ''
-  const price = Number(params.get('price')) || Infinity
+  const priceParam = Number(params.get('price'))
+  const MAX_RANGE = 3000
+  const MIN_RANGE = 1000
+  const price = priceParam ? Math.min(Math.max(priceParam, MIN_RANGE), MAX_RANGE) : Infinity
 
   const { products, loading, error } = useProducts()
   const source = products ?? staticProducts // fallback to static if remote not loaded

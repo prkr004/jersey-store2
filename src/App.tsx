@@ -14,6 +14,7 @@ const Checkout = lazy(() => import('./pages/Checkout'))
 const Account = lazy(() => import('./pages/Account'))
 const About = lazy(() => import('./pages/About'))
 const Contact = lazy(() => import('./pages/Contact'))
+const OrderConfirmation = lazy(() => import('./pages/OrderConfirmation'))
 const NotFound = lazy(() => import('./pages/NotFound'))
 
 export default function App() {
@@ -70,6 +71,16 @@ export default function App() {
               <PageTransition>
                 <Suspense fallback={<PageSkeleton />}>
                   <Checkout />
+                </Suspense>
+              </PageTransition>
+            }
+          />
+          <Route
+            path="/order/confirmation"
+            element={
+              <PageTransition>
+                <Suspense fallback={<PageSkeleton />}>
+                  <OrderConfirmation />
                 </Suspense>
               </PageTransition>
             }

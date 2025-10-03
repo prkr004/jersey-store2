@@ -9,8 +9,15 @@ import { useProducts } from '../hooks/useProducts'
 export default function Home() {
   const { products, loading } = useProducts()
   const list = products ?? staticProducts
-  const featured = list.filter((p) => p.featured).slice(0, 6)
-  const trending = list.filter((p) => p.trending).slice(0, 6)
+  let featured = list.filter((p) => p.featured).slice(0, 6)
+  let trending = list.filter((p) => p.trending).slice(0, 6)
+  // If remote products returned but none are flagged, fallback to static flagged ones to avoid empty sections.
+  if (products && featured.length === 0) {
+    featured = staticProducts.filter(p => p.featured).slice(0,6)
+  }
+  if (products && trending.length === 0) {
+    trending = staticProducts.filter(p => p.trending).slice(0,6)
+  }
 
   return (
     <>
