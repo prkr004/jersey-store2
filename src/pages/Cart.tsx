@@ -1,5 +1,7 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
+import { useAuth } from '../context/AuthContext'
+import { useAuthModal } from '../context/AuthModalContext'
 import CartItem from '../components/CartItem'
 import MotionButton from '../components/MotionButton'
 import { currency } from '../utils/format'
@@ -8,17 +10,37 @@ import CheckoutWizard from '../components/CheckoutWizard'
 
 export default function Cart() {
   const { detailed, total, clear } = useCart()
+  const { user } = useAuth()
+  const { requireAuth } = useAuthModal()
+  const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const location = useLocation()
-  // Auto open checkout when arriving from Buy Now
+  
+  // Auto open checkout when arriving from Buy Now (if authenticated)
   useEffect(() => {
     if ((location.state as any)?.checkout && detailed.length) {
-      setOpen(true)
+      if (user) {
+        setOpen(true)
+      } else {
+        // Redirect to login if not authenticated
+        navigate('/account/login', { 
+          state: { returnTo: '/cart', message: 'Please sign in to complete your purchase' }
+        })
+      }
       // Clear the state so back nav doesn't reopen
       window.history.replaceState({}, document.title)
     }
-  }, [location.state, detailed.length])
+  }, [location.state, detailed.length, user, navigate])
+  
   const hasItems = detailed.length > 0
+
+  const handleCheckout = async () => {
+    if (!user) {
+      const ok = await requireAuth('checkout')
+      if (!ok) return
+    }
+    setOpen(true)
+  }
 
   return (
     <div className="container mx-auto px-4 py-10">
@@ -63,7 +85,9 @@ export default function Cart() {
               <span>Total</span>
               <span>{currency(total)}</span>
             </div>
-            <MotionButton className="w-full mt-4" onClick={() => setOpen(true)}>Checkout</MotionButton>
+            <MotionButton className="w-full mt-4" onClick={handleCheckout}>
+              {user ? 'Checkout' : 'Sign In to Checkout'}
+            </MotionButton>
           </div>
         </div>
       )}

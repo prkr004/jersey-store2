@@ -4,6 +4,7 @@ import { products as staticProducts } from '../data/product'
 import ProductCard from '../components/ProductCard'
 import { useSearchParams } from 'react-router-dom'
 import { useProducts } from '../hooks/useProducts'
+import { getRandomPrice, PRICE_RANGE } from '../utils/pricing'
 
 export default function Shop() {
   const [params] = useSearchParams()
@@ -11,15 +12,18 @@ export default function Shop() {
   const sport = params.get('sport') ?? ''
   const team = params.get('team') ?? ''
   const priceParam = Number(params.get('price'))
-  const MAX_RANGE = 3000
-  const MIN_RANGE = 1000
-  const price = priceParam ? Math.min(Math.max(priceParam, MIN_RANGE), MAX_RANGE) : Infinity
+  const price = priceParam ? Math.min(Math.max(priceParam, PRICE_RANGE.MIN), PRICE_RANGE.MAX) : Infinity
 
   const { products, loading, error } = useProducts()
   const source = products ?? staticProducts // fallback to static if remote not loaded
 
+  // Apply consistent randomized pricing using the centralized utility
+  const pricedSource = useMemo(() => {
+    return source.map((p) => ({ ...p, price: getRandomPrice(p.id) }))
+  }, [source])
+
   const filtered = useMemo(() => {
-    return source.filter((p) => {
+    return pricedSource.filter((p) => {
       const productSport = (p as any).sport || 'Football'
       const matchesQ = q
         ? [p.name, p.team, productSport].some((f) => f.toLowerCase().includes(q))
@@ -29,7 +33,7 @@ export default function Shop() {
       const matchesPrice = isFinite(price) ? p.price <= price : true
       return matchesQ && matchesSport && matchesTeam && matchesPrice
     })
-  }, [q, sport, team, price, source])
+  }, [q, sport, team, price, pricedSource])
 
   return (
     <div className="container mx-auto px-4 py-10">

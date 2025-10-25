@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import type { Product } from '../data/product'
 import { productsById } from '../data/product'
 import { supabase } from '../lib/supabaseClient'
+// NOTE: Session-only auth and no backend storage currently; do not sync cart to DB.
 
 export type ProductSnapshot = Pick<Product, 'id' | 'name' | 'price' | 'images' | 'team' | 'sport' | 'sizes' | 'description'>
 export type CartItem = {

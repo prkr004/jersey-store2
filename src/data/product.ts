@@ -13,21 +13,13 @@ export type Product = {
   trending?: boolean
 }
 
-// Centralized image references. Currently using stable placeholder CDN URLs (placehold.co) so
-// broken or rate-limited external Unsplash links don't blank the UI.
-// To switch to local assets later: put files in /public/images and change e.g. football1: '/images/football-home.jpg'
-const img = {
-  football1: 'https://placehold.co/800x600/0ea5e9/ffffff?text=Football+Home',
-  football2: 'https://placehold.co/800x600/1f2937/ffffff?text=Football+Alt',
-  basketball1: 'https://placehold.co/800x600/6d28d9/ffffff?text=Basketball+City',
-  basketball2: 'https://placehold.co/800x600/f59e0b/111827?text=Basketball+Classic',
-  cricket1: 'https://placehold.co/800x600/1d4ed8/ffffff?text=Cricket+ODI',
-  cricket2: 'https://placehold.co/800x600/22c55e/ffffff?text=Cricket+T20',
-  baseball1: 'https://placehold.co/800x600/1e293b/f8fafc?text=Baseball+Home',
-  hockey1: 'https://placehold.co/800x600/0ea5e9/111827?text=Hockey+Pro'
-}
+// Generate deterministic images per product using seeded picsum.photos
+// This yields consistent, unique images per product name without external API keys.
+const imageFor = (seed: string, variant: number = 1) =>
+  `https://picsum.photos/seed/${encodeURIComponent(seed + ' ' + variant)}/800/600`
 
-export const products: Product[] = [
+// Base product list (without final images). Images will be generated from the product name below.
+const baseProducts: Product[] = [
   {
     id: 'FB-NY-01',
     name: 'NY Guardians Home Jersey',
@@ -36,7 +28,7 @@ export const products: Product[] = [
   // Converted to INR pricing in thousands range
   price: 1999,
     rating: 4.7,
-    images: [img.football1, img.football2],
+    images: [],
     colors: ['#0ea5e9', '#111827'],
     sizes: ['S', 'M', 'L', 'XL', 'XXL'],
     description:
@@ -51,7 +43,7 @@ export const products: Product[] = [
     sport: 'Basketball',
   price: 2499,
     rating: 4.8,
-    images: [img.basketball1, img.basketball2],
+    images: [],
     colors: ['#6d28d9', '#f59e0b'],
     sizes: ['XS', 'S', 'M', 'L', 'XL'],
     description:
@@ -66,7 +58,7 @@ export const products: Product[] = [
     sport: 'Cricket',
   price: 1799,
     rating: 4.6,
-    images: [img.cricket1, img.cricket2],
+    images: [],
     colors: ['#1d4ed8', '#f97316'],
     sizes: ['S', 'M', 'L', 'XL'],
     description:
@@ -80,7 +72,7 @@ export const products: Product[] = [
     sport: 'Basketball',
   price: 2299,
     rating: 4.9,
-    images: [img.basketball2, img.basketball1],
+    images: [],
     colors: ['#ef4444', '#111827'],
     sizes: ['S', 'M', 'L', 'XL', 'XXL'],
     description:
@@ -94,7 +86,7 @@ export const products: Product[] = [
     sport: 'Football',
   price: 1899,
     rating: 4.5,
-    images: [img.football2, img.football1],
+    images: [],
     colors: ['#60a5fa', '#1f2937'],
     sizes: ['M', 'L', 'XL'],
     description:
@@ -107,7 +99,7 @@ export const products: Product[] = [
     sport: 'Cricket',
   price: 1499,
     rating: 4.4,
-    images: [img.cricket2, img.cricket1],
+    images: [],
     colors: ['#22c55e', '#facc15'],
     sizes: ['S', 'M', 'L', 'XL'],
     description:
@@ -120,7 +112,7 @@ export const products: Product[] = [
     sport: 'Baseball',
   price: 2099,
     rating: 4.3,
-    images: [img.baseball1, img.football1],
+    images: [],
     colors: ['#1e293b', '#f8fafc'],
     sizes: ['S', 'M', 'L', 'XL'],
     description:
@@ -133,7 +125,7 @@ export const products: Product[] = [
     sport: 'Hockey',
   price: 2799,
     rating: 4.6,
-    images: [img.hockey1, img.football2],
+    images: [],
     colors: ['#0ea5e9', '#111827'],
     sizes: ['M', 'L', 'XL', 'XXL'],
     description:
@@ -148,12 +140,18 @@ export const products: Product[] = [
   // Base 1099 to 3099 spread
   price: 1099 + (i % 5) * 500,
     rating: 4.1 + ((i * 7) % 9) / 10,
-    images: [img.football1, img.basketball1],
+    images: [],
     colors: ['#06b6d4', '#22c55e'],
     sizes: ['S', 'M', 'L', 'XL'],
     description: 'High-performance jersey crafted for fans and athletes. Breathable, durable, iconic.',
   }))
 ]
+
+// Final exported products with generated images per name
+export const products: Product[] = baseProducts.map((p) => ({
+  ...p,
+  images: [imageFor(p.name, 1), imageFor(p.name, 2)]
+}))
 
 export const productsById = Object.fromEntries(products.map((p) => [p.id, p]))
 export const teams = Array.from(new Set(products.map((p) => p.team))).sort()

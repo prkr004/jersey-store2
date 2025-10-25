@@ -4,18 +4,29 @@ import { useEffect, useMemo, useState } from 'react'
 import { currency } from '../utils/format'
 import MotionButton from '../components/MotionButton'
 import { useCart } from '../context/CartContext'
+import { useAuth } from '../context/AuthContext'
+import { useAuthModal } from '../context/AuthModalContext'
 import { motion } from 'framer-motion'
 import { useProductBySlug } from '../hooks/useProducts'
+import { getRandomPrice } from '../utils/pricing'
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>() // currently using id path param
   // Try local first (legacy) then attempt supabase by treating id as slug.
   const localProduct = id ? productsById[id] : null
   const { product: remoteProduct, loading } = useProductBySlug(id)
-  const product = remoteProduct || localProduct
+  const baseProduct = remoteProduct || localProduct
+  
+  // Apply consistent randomized pricing
+  const product = useMemo(() => {
+    if (!baseProduct) return null
+    return { ...baseProduct, price: getRandomPrice(baseProduct.id) }
+  }, [baseProduct])
   const [size, setSize] = useState(product?.sizes[0] ?? '')
   const [imgIndex, setImgIndex] = useState(0)
   const { add, replaceWithSingle } = useCart()
+  const { user } = useAuth()
+  const { requireAuth } = useAuthModal()
   const [added, setAdded] = useState(false)
   const navigate = useNavigate()
 
@@ -89,7 +100,12 @@ export default function ProductDetail() {
             <MotionButton
               variant="primary"
               className="px-6 py-3 bg-brand-600 hover:bg-brand-500"
-              onClick={() => {
+              onClick={async () => {
+                if (!user) {
+                  const ok = await requireAuth('buy-now')
+                  if (!ok) return
+                }
+
                 replaceWithSingle(product.id, size || product.sizes[0], 1, {
                   id: product.id,
                   name: product.name,

@@ -1,4 +1,4 @@
-import { NavLink, Route, Routes } from 'react-router-dom'
+import { NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import MotionButton from '../components/MotionButton'
 import { useAuth } from '../context/AuthContext'
 import { useState } from 'react'
@@ -55,17 +55,41 @@ function Login() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  if (user) return <div className="text-sm text-slate-600 dark:text-slate-400">Already signed in.</div>
+  const location = useLocation()
+  const navigate = useNavigate()
+  
+  const returnTo = (location.state as any)?.returnTo || '/account'
+  const message = (location.state as any)?.message
+  
+  if (user) {
+    // If user is logged in and there's a return path, redirect
+    if (returnTo !== '/account') {
+      navigate(returnTo, { replace: true })
+      return null
+    }
+    return <div className="text-sm text-slate-600 dark:text-slate-400">Already signed in.</div>
+  }
+  
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     const { error } = await signIn(email, password)
-    setError(error || null)
+    if (!error) {
+      // Success - redirect to return path
+      navigate(returnTo, { replace: true })
+    } else {
+      setError(error)
+    }
     setLoading(false)
   }
   return (
     <div>
       <h2 className="font-semibold text-xl">Login</h2>
+      {message && (
+        <div className="mt-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 text-sm text-blue-700 dark:text-blue-300">
+          {message}
+        </div>
+      )}
       <form onSubmit={onSubmit} className="grid gap-4 mt-4">
         <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="Email" type="email" required className="rounded-xl bg-slate-100 dark:bg-slate-900 px-4 py-2" />
         <input value={password} onChange={e=>setPassword(e.target.value)} placeholder="Password" type="password" required className="rounded-xl bg-slate-100 dark:bg-slate-900 px-4 py-2" />
@@ -82,17 +106,41 @@ function Signup() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  if (user) return <div className="text-sm text-slate-600 dark:text-slate-400">Already signed in.</div>
+  const location = useLocation()
+  const navigate = useNavigate()
+  
+  const returnTo = (location.state as any)?.returnTo || '/account'
+  const message = (location.state as any)?.message
+  
+  if (user) {
+    // If user is logged in and there's a return path, redirect
+    if (returnTo !== '/account') {
+      navigate(returnTo, { replace: true })
+      return null
+    }
+    return <div className="text-sm text-slate-600 dark:text-slate-400">Already signed in.</div>
+  }
+  
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     const { error } = await signUp(email, password)
-    setError(error || null)
+    if (!error) {
+      // Success - redirect to return path
+      navigate(returnTo, { replace: true })
+    } else {
+      setError(error)
+    }
     setLoading(false)
   }
   return (
     <div>
       <h2 className="font-semibold text-xl">Create Account</h2>
+      {message && (
+        <div className="mt-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 text-sm text-blue-700 dark:text-blue-300">
+          {message}
+        </div>
+      )}
       <form onSubmit={onSubmit} className="grid gap-4 mt-4">
         <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="Email" type="email" required className="rounded-xl bg-slate-100 dark:bg-slate-900 px-4 py-2" />
         <input value={password} onChange={e=>setPassword(e.target.value)} placeholder="Password" type="password" required className="rounded-xl bg-slate-100 dark:bg-slate-900 px-4 py-2" />
