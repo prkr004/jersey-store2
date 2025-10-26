@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom'
-import { productsById } from '../data/product'
+import { productsById, getSportCover } from '../data/product'
 import { useEffect, useMemo, useState } from 'react'
 import { currency } from '../utils/format'
 import MotionButton from '../components/MotionButton'
@@ -9,6 +9,7 @@ import { useAuthModal } from '../context/AuthModalContext'
 import { motion } from 'framer-motion'
 import { useProductBySlug } from '../hooks/useProducts'
 import { getRandomPrice } from '../utils/pricing'
+import { useWishlist } from '../context/WishlistContext'
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>() // currently using id path param
@@ -29,9 +30,18 @@ export default function ProductDetail() {
   const { requireAuth } = useAuthModal()
   const [added, setAdded] = useState(false)
   const navigate = useNavigate()
+  const { toggle: toggleWishlist, contains } = useWishlist()
 
   useEffect(() => {
     if (product) setSize(product.sizes[0] ?? '')
+  }, [product])
+
+  // Ensure we always have at least one image using sport cover fallback
+  const displayImages = useMemo(() => {
+    if (!product) return []
+    const cover = getSportCover((product as any).sport || 'Football')
+    const imgs = product.images && product.images.length ? product.images : [cover, cover]
+    return imgs
   }, [product])
 
   const related = useMemo(
@@ -47,12 +57,34 @@ export default function ProductDetail() {
       <div className="grid lg:grid-cols-2 gap-10">
         <div>
           <div className="aspect-[4/3] rounded-2xl overflow-hidden border border-slate-200/60 dark:border-slate-800">
-            <motion.img key={imgIndex} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} src={product.images[imgIndex]} alt={product.name} className="w-full h-full object-cover" />
+            <motion.img
+              key={imgIndex}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
+              src={displayImages[imgIndex]}
+              alt={product.name}
+              className="w-full h-full object-cover"
+              onError={({ currentTarget }) => {
+                currentTarget.onerror = null
+                // Try next image index or fallback stable URL
+                const next = (imgIndex + 1) % Math.max(displayImages.length, 1)
+                currentTarget.src = displayImages[next] ?? 'https://images.unsplash.com/photo-1655089131279-8029e8a21ac6?auto=format&fit=crop&w=1200&q=60'
+              }}
+            />
           </div>
           <div className="mt-3 flex gap-3">
-            {product.images.map((src, i) => (
+            {displayImages.map((src, i) => (
               <button key={i} onClick={() => setImgIndex(i)} className={`w-20 h-20 rounded-xl overflow-hidden border ${i === imgIndex ? 'border-brand-500' : 'border-slate-200/60 dark:border-slate-800'}`}>
-                <img src={src} alt={`${product.name} ${i + 1}`} className="w-full h-full object-cover" />
+                <img
+                  src={src}
+                  alt={`${product.name} ${i + 1}`}
+                  className="w-full h-full object-cover"
+                  onError={({ currentTarget }) => {
+                    currentTarget.onerror = null
+                    currentTarget.src = displayImages[(i + 1) % Math.max(displayImages.length, 1)] ?? 'https://images.unsplash.com/photo-1655089131279-8029e8a21ac6?auto=format&fit=crop&w=1200&q=60'
+                  }}
+                />
               </button>
             ))}
           </div>
@@ -86,7 +118,7 @@ export default function ProductDetail() {
                   id: product.id,
                   name: product.name,
                   price: product.price,
-                  images: product.images,
+                  images: displayImages,
                   team: product.team,
                   sport: (product as any).sport || 'Sport',
                   sizes: product.sizes,
@@ -110,7 +142,7 @@ export default function ProductDetail() {
                   id: product.id,
                   name: product.name,
                   price: product.price,
-                  images: product.images,
+                  images: displayImages,
                   team: product.team,
                   sport: (product as any).sport || 'Sport',
                   sizes: product.sizes,
@@ -120,7 +152,22 @@ export default function ProductDetail() {
                 navigate('/cart', { state: { checkout: true } })
               }}
             >Buy Now</MotionButton>
-            <MotionButton variant="outline" className="px-6 py-3">Wishlist</MotionButton>
+            <MotionButton
+              variant="outline"
+              className="px-6 py-3"
+              onClick={() => {
+                toggleWishlist({
+                  id: product.id,
+                  name: product.name,
+                  price: product.price,
+                  images: displayImages,
+                  team: product.team,
+                  sport: (product as any).sport || 'Football',
+                  sizes: product.sizes,
+                  description: product.description,
+                })
+              }}
+            >{contains(product.id) ? 'Wishlisted ✓' : 'Wishlist'}</MotionButton>
           </div>
         </div>
       </div>
@@ -139,11 +186,19 @@ export default function ProductDetail() {
   )
 }
 
-function RelatedCard({ id, name, images }: { id: string; name: string; images: string[] }) {
+function RelatedCard({ id, name, images, sport }: { id: string; name: string; images: string[]; sport: any }) {
   return (
     <a href={`/product/${id}`} className="group block rounded-2xl overflow-hidden border border-slate-200/60 dark:border-slate-800">
       <div className="aspect-[4/3] overflow-hidden">
-        <img src={images[0]} alt={name} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+        <img
+          src={images?.[0] || getSportCover(sport)}
+          alt={name}
+          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+          onError={({ currentTarget }) => {
+            currentTarget.onerror = null
+            currentTarget.src = images?.[1] ?? getSportCover(sport)
+          }}
+        />
       </div>
       <div className="p-4 font-medium">{name}</div>
     </a>

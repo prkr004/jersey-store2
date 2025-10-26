@@ -3,10 +3,25 @@ import { useCart } from '../context/CartContext'
 import { currency } from '../utils/format'
 import UPIPayment from '../components/UPIPayment'
 import { useState } from 'react'
+import { useOrders } from '../context/OrdersContext'
+import { useAuth } from '../context/AuthContext'
+import { useNavigate } from 'react-router-dom'
 
 export default function Checkout() {
   const { total, detailed, clear } = useCart()
+  const { placeOrder } = useOrders()
+  const { user } = useAuth()
+  const navigate = useNavigate()
   const [orderPlaced, setOrderPlaced] = useState(false)
+  const [ship, setShip] = useState({
+    first: '',
+    last: '',
+    email: user?.email || '',
+    address: '',
+    city: '',
+    postalCode: ''
+  })
+  const canPlace = ship.first && ship.last && ship.email && ship.address && ship.city && ship.postalCode && detailed.length > 0
 
   return (
     <div className="container mx-auto px-4 py-10">
@@ -16,12 +31,12 @@ export default function Checkout() {
           <div className="rounded-2xl border border-slate-200/60 dark:border-slate-800 p-6">
             <h2 className="font-semibold mb-4">Shipping Information</h2>
             <div className="grid sm:grid-cols-2 gap-4">
-              <input placeholder="First name" className="rounded-xl bg-slate-100 dark:bg-slate-900 px-4 py-2" />
-              <input placeholder="Last name" className="rounded-xl bg-slate-100 dark:bg-slate-900 px-4 py-2" />
-              <input placeholder="Email" type="email" className="rounded-xl bg-slate-100 dark:bg-slate-900 px-4 py-2 sm:col-span-2" />
-              <input placeholder="Address" className="rounded-xl bg-slate-100 dark:bg-slate-900 px-4 py-2 sm:col-span-2" />
-              <input placeholder="City" className="rounded-xl bg-slate-100 dark:bg-slate-900 px-4 py-2" />
-              <input placeholder="Postal Code" className="rounded-xl bg-slate-100 dark:bg-slate-900 px-4 py-2" />
+              <input placeholder="First name" value={ship.first} onChange={e=>setShip(s=>({ ...s, first: e.target.value }))} className="rounded-xl bg-slate-100 dark:bg-slate-900 px-4 py-2" />
+              <input placeholder="Last name" value={ship.last} onChange={e=>setShip(s=>({ ...s, last: e.target.value }))} className="rounded-xl bg-slate-100 dark:bg-slate-900 px-4 py-2" />
+              <input placeholder="Email" type="email" value={ship.email} onChange={e=>setShip(s=>({ ...s, email: e.target.value }))} className="rounded-xl bg-slate-100 dark:bg-slate-900 px-4 py-2 sm:col-span-2" />
+              <input placeholder="Address" value={ship.address} onChange={e=>setShip(s=>({ ...s, address: e.target.value }))} className="rounded-xl bg-slate-100 dark:bg-slate-900 px-4 py-2 sm:col-span-2" />
+              <input placeholder="City" value={ship.city} onChange={e=>setShip(s=>({ ...s, city: e.target.value }))} className="rounded-xl bg-slate-100 dark:bg-slate-900 px-4 py-2" />
+              <input placeholder="Postal Code" value={ship.postalCode} onChange={e=>setShip(s=>({ ...s, postalCode: e.target.value }))} className="rounded-xl bg-slate-100 dark:bg-slate-900 px-4 py-2" />
             </div>
           </div>
 
@@ -34,8 +49,41 @@ export default function Checkout() {
                 payeeName: 'JerseyX Store',
                 note: 'Order Payment',
               }}
-              onSimulateSuccess={() => { setOrderPlaced(true); clear() }}
+              onSimulateSuccess={() => {
+                // Allow order placement even if some fields are missing (session demo)
+                const fallbackName = `${ship.first || ''} ${ship.last || ''}`.trim() || 'Guest'
+                const ord = placeOrder({
+                  items: detailed,
+                  shipping: {
+                    name: fallbackName,
+                    email: ship.email || 'guest@example.com',
+                    address: ship.address || '—',
+                    city: ship.city || '—',
+                    postalCode: ship.postalCode || '—'
+                  }
+                })
+                setOrderPlaced(true)
+                clear()
+                // Estimate delivery in 3–5 days
+                const etaDate = new Date();
+                etaDate.setDate(etaDate.getDate() + (Math.random() < 0.5 ? 3 : 5))
+                navigate('/order/confirmation', {
+                  replace: true,
+                  state: {
+                    status: 'success',
+                    order: {
+                      id: ord.id,
+                      items: ord.items.map(i => ({ name: i.name, qty: i.qty, price: i.price, size: i.size })),
+                      total: ord.totals.total,
+                      eta: etaDate.toLocaleDateString()
+                    }
+                  }
+                })
+              }}
             />
+            {!canPlace && (
+              <div className="rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-3 text-xs text-amber-700 dark:text-amber-300">Tip: Fill shipping details for a more complete receipt. Your order will still be recorded for this session.</div>
+            )}
             {orderPlaced && (
               <div className="rounded-xl bg-green-50 dark:bg-green-900/30 border border-green-300/50 dark:border-green-700 p-4 text-sm text-green-700 dark:text-green-300">
                 <p className="font-medium">Payment Recorded</p>

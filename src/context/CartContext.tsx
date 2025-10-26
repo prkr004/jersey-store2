@@ -1,7 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import type { Product } from '../data/product'
-import { productsById } from '../data/product'
-import { supabase } from '../lib/supabaseClient'
+import { productsById, getSportCover } from '../data/product'
 // NOTE: Session-only auth and no backend storage currently; do not sync cart to DB.
 
 export type ProductSnapshot = Pick<Product, 'id' | 'name' | 'price' | 'images' | 'team' | 'sport' | 'sizes' | 'description'>
@@ -78,7 +77,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           id: prod.id,
           name: prod.name,
           price: prod.price,
-            images: prod.images,
+          images: (prod.images && prod.images.length ? prod.images : [getSportCover((prod as any).sport), getSportCover((prod as any).sport)]),
           team: prod.team,
           sport: (prod as any).sport || 'Sport',
           sizes: prod.sizes,
@@ -89,37 +88,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       .filter(Boolean) as Array<CartItem & { product: ProductSnapshot }>
   }, [items])
 
-  // Hydrate any missing products (remote) via Supabase if we have ids without snapshot and not in local catalog.
-  useEffect(() => {
-    const missing = items.filter(i => !i.product && !productsById[i.id])
-    if (!missing.length || hydrating) return
-    let cancelled = false
-    async function fetchMissing() {
-      setHydrating(true)
-      try {
-        for (const m of missing) {
-          const { data, error } = await supabase.from('products').select('*').eq('slug', m.id).maybeSingle()
-          if (cancelled) return
-          if (data && !error) {
-            setItems(prev => prev.map(p => p.id === m.id && p.size === m.size ? { ...p, product: {
-              id: data.slug || data.id,
-              name: data.name,
-              price: data.price_cents / 100,
-              images: data.images || [],
-              team: data.team || 'Unknown Team',
-              sport: 'Football',
-              sizes: data.sizes || [],
-              description: data.description || ''
-            }} : p))
-          }
-        }
-      } finally {
-        if (!cancelled) setHydrating(false)
-      }
-    }
-    fetchMissing()
-    return () => { cancelled = true }
-  }, [items, hydrating])
+  // Removed remote hydration (no backend). If ever needed, reintroduce via a client API.
 
   const total = useMemo(() => detailed.reduce((a, b) => a + b.product.price * b.qty, 0), [detailed])
 

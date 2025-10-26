@@ -2,6 +2,8 @@ import { NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-d
 import MotionButton from '../components/MotionButton'
 import { useAuth } from '../context/AuthContext'
 import { useState } from 'react'
+import { useOrders } from '../context/OrdersContext'
+import { currency } from '../utils/format'
 
 export default function Account() {
   return (
@@ -12,6 +14,7 @@ export default function Account() {
         <aside className="rounded-2xl border border-slate-200/60 dark:border-slate-800 p-4">
           <nav className="space-y-1">
             <NavLink to="" end className={linkClass}>Profile</NavLink>
+            <NavLink to="orders" className={linkClass}>Orders</NavLink>
             <NavLink to="login" className={linkClass}>Login</NavLink>
             <NavLink to="signup" className={linkClass}>Sign Up</NavLink>
           </nav>
@@ -21,6 +24,7 @@ export default function Account() {
           <div className="rounded-2xl border border-slate-200/60 dark:border-slate-800 p-6">
             <Routes>
               <Route index element={<Profile />} />
+              <Route path="orders" element={<Orders />} />
               <Route path="login" element={<Login />} />
               <Route path="signup" element={<Signup />} />
             </Routes>
@@ -45,6 +49,59 @@ function Profile() {
       <div className="mt-4">
         <MotionButton variant="outline" onClick={() => signOut()}>Sign Out</MotionButton>
       </div>
+    </div>
+  )
+}
+
+function Orders() {
+  const { orders } = useOrders()
+  const navigate = useNavigate()
+  return (
+    <div className="space-y-4">
+      <h2 className="font-semibold text-xl">Your Orders</h2>
+      {orders.length === 0 ? (
+        <div className="rounded-xl border border-slate-200/60 dark:border-slate-800 p-6 text-sm text-slate-600 dark:text-slate-400">No orders yet this session. After you checkout, they will appear here.</div>
+      ) : (
+        <div className="space-y-4">
+          {orders.map((o) => (
+            <div key={o.id} className="rounded-xl border border-slate-200/60 dark:border-slate-800 overflow-hidden">
+              <div className="p-4 sm:p-5 bg-slate-50 dark:bg-slate-900/40 flex flex-col sm:flex-row sm:items-center gap-3">
+                <div>
+                  <div className="text-[11px] uppercase tracking-wide text-slate-500">Order</div>
+                  <div className="font-mono text-sm font-semibold">{o.id}</div>
+                </div>
+                <div className="sm:ml-6">
+                  <div className="text-[11px] uppercase tracking-wide text-slate-500">Placed</div>
+                  <div className="text-sm">{new Date(o.createdAt).toLocaleString()}</div>
+                </div>
+                <div className="sm:ml-auto">
+                  <div className="text-[11px] uppercase tracking-wide text-slate-500">Total</div>
+                  <div className="text-sm font-semibold">{currency(o.totals.total)}</div>
+                </div>
+                <div>
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-[11px] font-medium border border-slate-300 dark:border-slate-700">{o.status}</span>
+                </div>
+              </div>
+              <div className="divide-y divide-slate-200/60 dark:divide-slate-800">
+                {o.items.map((it, i) => (
+                  <div key={i} className="p-4 sm:p-5 flex items-center gap-3 text-sm">
+                    <img src={it.images?.[0]} onError={(e:any)=>{e.currentTarget.src = it.images?.[1] || it.images?.[0]}} alt={it.name} className="w-14 h-14 rounded-lg object-cover border border-slate-200/60 dark:border-slate-800" />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium truncate">{it.name}</div>
+                      <div className="text-xs text-slate-500">Size {it.size} • Qty {it.qty}</div>
+                    </div>
+                    <div className="font-medium">{currency(it.price * it.qty)}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="p-4 sm:p-5 text-xs text-slate-600 dark:text-slate-400 flex flex-wrap gap-3">
+                <div>Payment: {o.payment.method} • {o.payment.status}</div>
+                <div>Ship to: {o.shipping.name}, {o.shipping.city} {o.shipping.postalCode}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

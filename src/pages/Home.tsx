@@ -1,5 +1,5 @@
 import HeroBanner from '../components/HeroBanner'
-import { products as staticProducts } from '../data/product'
+import { products as staticProducts, getSportCover } from '../data/product'
 import ProductCard from '../components/ProductCard'
 import { Link } from 'react-router-dom'
 import MotionButton from '../components/MotionButton'
@@ -53,12 +53,12 @@ export default function Home() {
 }
 
 function Categories() {
-  // Stable placeholder images (can later be swapped with local /public assets)
+  // Jersey photography for each sport using stable direct CDN covers
   const cats = [
-    { name: 'Football', img: 'https://placehold.co/800x600/0ea5e9/ffffff?text=Football' },
-    { name: 'Basketball', img: 'https://placehold.co/800x600/f59e0b/111827?text=Basketball' },
-    { name: 'Cricket', img: 'https://placehold.co/800x600/1d4ed8/ffffff?text=Cricket' },
-    { name: 'Hockey', img: 'https://placehold.co/800x600/0ea5e9/111827?text=Hockey' }
+    { name: 'Football', img: getSportCover('Football') },
+    { name: 'Basketball', img: getSportCover('Basketball') },
+    { name: 'Cricket', img: getSportCover('Cricket') },
+    { name: 'Hockey', img: getSportCover('Hockey') }
   ]
   return (
     <section className="container mx-auto px-4 py-12">

@@ -6,9 +6,11 @@ import './index.css'
 import { ThemeProvider } from './context/ThemeContext'
 import { CartProvider } from './context/CartContext'
 import { AuthProvider } from './context/AuthContext'
+import { WishlistProvider } from './context/WishlistContext'
 import { AuthModalProvider } from './context/AuthModalContext'
 import AuthModal from './components/AuthModal'
 import Chatbot from './components/Chatbot'
+import { OrdersProvider } from './context/OrdersContext'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -16,11 +18,15 @@ createRoot(document.getElementById('root')!).render(
       <AuthProvider>
         <AuthModalProvider>
           <CartProvider>
-            <BrowserRouter>
-              <App />
-              <Chatbot />
-              <AuthModal />
-            </BrowserRouter>
+            <OrdersProvider>
+              <WishlistProvider>
+                <BrowserRouter>
+                  <App />
+                  <Chatbot />
+                  <AuthModal />
+                </BrowserRouter>
+              </WishlistProvider>
+            </OrdersProvider>
           </CartProvider>
         </AuthModalProvider>
       </AuthProvider>

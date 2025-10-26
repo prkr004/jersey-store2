@@ -33,6 +33,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const u = { id: `local-${acc.email}`, email: acc.email, name: acc.name || acc.email?.split('@')[0] || 'User' }
       setUser(u)
       sessionStorage.setItem('jerseyx_user', JSON.stringify(u))
+      // Migrate any guest orders from this session into the user's order list
+      try {
+        const guest = sessionStorage.getItem('jerseyx_orders_guest')
+        if (guest) {
+          const guestOrders = JSON.parse(guest)
+          const userKey = `jerseyx_orders_${u.email || u.id}`
+          const existingRaw = sessionStorage.getItem(userKey)
+          const existing = existingRaw ? JSON.parse(existingRaw) : []
+          const merged = [...guestOrders, ...existing]
+          sessionStorage.setItem(userKey, JSON.stringify(merged))
+          sessionStorage.removeItem('jerseyx_orders_guest')
+        }
+      } catch {}
       return {}
     } catch {
       return { error: 'Unable to sign in. Try again.' }
@@ -46,6 +59,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const u = { id: `local-${email}`, email, name: account.name }
       setUser(u)
       sessionStorage.setItem('jerseyx_user', JSON.stringify(u))
+      // Migrate any guest orders into the new user's list
+      try {
+        const guest = sessionStorage.getItem('jerseyx_orders_guest')
+        if (guest) {
+          const guestOrders = JSON.parse(guest)
+          const userKey = `jerseyx_orders_${u.email || u.id}`
+          const existingRaw = sessionStorage.getItem(userKey)
+          const existing = existingRaw ? JSON.parse(existingRaw) : []
+          const merged = [...guestOrders, ...existing]
+          sessionStorage.setItem(userKey, JSON.stringify(merged))
+          sessionStorage.removeItem('jerseyx_orders_guest')
+        }
+      } catch {}
       return {}
     } catch {
       return { error: 'Unable to create account. Try again.' }

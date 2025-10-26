@@ -91,7 +91,7 @@ function NavLinks({ vertical = false, onNavigate }: { vertical?: boolean; onNavi
   const links = [
     { to: '/', label: 'Home' },
     { to: '/shop', label: 'Shop' },
-    { to: '/cart', label: 'Cart' },
+    { to: '/wishlist', label: 'Wishlist' },
     { to: '/about', label: 'About' },
     { to: '/contact', label: 'Contact' }
   ]

@@ -1,3 +1,5 @@
+import { imageOverrides } from './imageOverrides'
+
 export type Product = {
   id: string
   name: string
@@ -13,10 +15,52 @@ export type Product = {
   trending?: boolean
 }
 
-// Generate deterministic images per product using seeded picsum.photos
-// This yields consistent, unique images per product name without external API keys.
-const imageFor = (seed: string, variant: number = 1) =>
-  `https://picsum.photos/seed/${encodeURIComponent(seed + ' ' + variant)}/800/600`
+// Stable, direct CDN jersey images per sport (Unsplash/Pexels) to avoid random/blocked endpoints.
+// Use only images.unsplash.com and images.pexels.com links with explicit sizing params.
+const SPORT_IMAGE_POOL: Record<Product['sport'], string[]> = {
+  Football: [
+    // Soccer/football jerseys
+    'https://images.unsplash.com/photo-1577212017184-80cc0da11082?auto=format&fit=crop&w=1200&q=60',
+    'https://images.unsplash.com/photo-1616124619460-ff4ed8f4683c?auto=format&fit=crop&w=1200&q=60',
+    'https://images.pexels.com/photos/6077784/pexels-photo-6077784.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  ],
+  Basketball: [
+    // Basketball jerseys and jersey-themed scenes
+    'https://images.unsplash.com/photo-1655089131279-8029e8a21ac6?auto=format&fit=crop&w=1200&q=60',
+    'https://images.pexels.com/photos/7005243/pexels-photo-7005243.jpeg?auto=compress&cs=tinysrgb&w=1200',
+    'https://images.pexels.com/photos/7005768/pexels-photo-7005768.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  ],
+  Cricket: [
+    // Cricket jerseys in action
+    'https://images.pexels.com/photos/32801557/pexels-photo-32801557.jpeg?auto=compress&cs=tinysrgb&w=1200',
+    'https://images.pexels.com/photos/34211752/pexels-photo-34211752.jpeg?auto=compress&cs=tinysrgb&w=1200',
+    'https://images.pexels.com/photos/30497263/pexels-photo-30497263.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  ],
+  Baseball: [
+    // Baseball jerseys and gear
+    'https://images.pexels.com/photos/5184688/pexels-photo-5184688.jpeg?auto=compress&cs=tinysrgb&w=1200',
+    'https://images.pexels.com/photos/5184696/pexels-photo-5184696.jpeg?auto=compress&cs=tinysrgb&w=1200',
+    'https://images.pexels.com/photos/32371388/pexels-photo-32371388.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  ],
+  Hockey: [
+    // Ice hockey jerseys and gameplay
+    'https://images.unsplash.com/photo-1547650276-c112256c9cc6?auto=format&fit=crop&w=1200&q=60',
+    'https://images.pexels.com/photos/8974847/pexels-photo-8974847.jpeg?auto=compress&cs=tinysrgb&w=1200',
+    'https://images.pexels.com/photos/8975008/pexels-photo-8975008.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  ],
+}
+
+const hashIndex = (id: string, mod: number) => {
+  let h = 0
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0
+  const idx = Math.abs(h) % mod
+  return idx
+}
+
+export const getSportCover = (sport: Product['sport']): string => {
+  const arr = SPORT_IMAGE_POOL[sport]
+  return arr[0]
+}
 
 // Base product list (without final images). Images will be generated from the product name below.
 const baseProducts: Product[] = [
@@ -148,9 +192,16 @@ const baseProducts: Product[] = [
 ]
 
 // Final exported products with generated images per name
+
 export const products: Product[] = baseProducts.map((p) => ({
   ...p,
-  images: [imageFor(p.name, 1), imageFor(p.name, 2)]
+  images: (() => {
+    const override = imageOverrides[p.id]
+    if (override && override.length) return override
+    const pool = SPORT_IMAGE_POOL[p.sport]
+    const start = hashIndex(p.id, pool.length)
+    return [pool[start], pool[(start + 1) % pool.length]]
+  })()
 }))
 
 export const productsById = Object.fromEntries(products.map((p) => [p.id, p]))

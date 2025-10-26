@@ -10,6 +10,7 @@ const Home = lazy(() => import('./pages/Home'))
 const Shop = lazy(() => import('./pages/Shop'))
 const ProductDetail = lazy(() => import('./pages/ProductDetail'))
 const Cart = lazy(() => import('./pages/Cart'))
+const Wishlist = lazy(() => import('./pages/Wishlist'))
 const Checkout = lazy(() => import('./pages/Checkout'))
 const Account = lazy(() => import('./pages/Account'))
 const About = lazy(() => import('./pages/About'))
@@ -61,6 +62,16 @@ export default function App() {
               <PageTransition>
                 <Suspense fallback={<PageSkeleton />}>
                   <Cart />
+                </Suspense>
+              </PageTransition>
+            }
+          />
+          <Route
+            path="/wishlist"
+            element={
+              <PageTransition>
+                <Suspense fallback={<PageSkeleton />}>
+                  <Wishlist />
                 </Suspense>
               </PageTransition>
             }

@@ -22,7 +22,15 @@ export default function CartItem({
   return (
     <div className="flex gap-4">
       <Link to={`/product/${id}`} className="w-24 h-24 rounded-xl overflow-hidden border border-slate-200/60 dark:border-slate-800">
-        <img src={img} alt={name} className="w-full h-full object-cover" />
+        <img
+          src={img}
+          alt={name}
+          className="w-full h-full object-cover"
+          onError={({ currentTarget }) => {
+            currentTarget.onerror = null
+            currentTarget.src = 'https://images.unsplash.com/photo-1655089131279-8029e8a21ac6?auto=format&fit=crop&w=600&q=60'
+          }}
+        />
       </Link>
       <div className="flex-1">
         <div className="flex items-start justify-between gap-3">
