@@ -15,7 +15,15 @@ export default function Shop() {
   const price = priceParam ? Math.min(Math.max(priceParam, PRICE_RANGE.MIN), PRICE_RANGE.MAX) : Infinity
 
   const { products, loading, error } = useProducts()
-  const source = products ?? staticProducts // fallback to static if remote not loaded
+  // Merge remote with static to guarantee coverage across sports (e.g., Baseball/Basketball)
+  const source = useMemo(() => {
+    if (!products) return staticProducts
+    const byId = new Map<string, any>()
+    ;[...products, ...staticProducts].forEach((p) => {
+      if (!byId.has(p.id)) byId.set(p.id, p)
+    })
+    return Array.from(byId.values())
+  }, [products])
 
   // Apply consistent randomized pricing using the centralized utility
   const pricedSource = useMemo(() => {
