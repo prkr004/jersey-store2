@@ -17,7 +17,7 @@ export type Order = {
   id: string
   createdAt: string // ISO
   status: 'Processing' | 'Packed' | 'Shipped' | 'Delivered' | 'Cancelled'
-  payment: { method: 'UPI'; status: 'Paid' | 'Pending'; reference?: string }
+  payment: { method: 'UPI' | 'CARD' | 'NETBANKING' | 'WALLET'; status: 'Paid' | 'Pending'; reference?: string }
   totals: { subtotal: number; shipping: number; discount: number; total: number }
   items: OrderItem[]
   shipping: { name: string; email: string; address: string; city: string; postalCode: string }
@@ -27,6 +27,7 @@ type PlaceOrderInput = {
   items: Array<CartItem & { product: ProductSnapshot }>
   shipping: Order['shipping']
   paymentRef?: string
+  method: Order['payment']['method']
   pricing?: { shipping?: number; discount?: number }
 }
 
@@ -78,7 +79,7 @@ export function OrdersProvider({ children }: { children: React.ReactNode }) {
     } catch {}
   }, [orders, storageKey])
 
-  const placeOrder: OrdersContextType['placeOrder'] = ({ items, shipping, paymentRef, pricing }) => {
+  const placeOrder: OrdersContextType['placeOrder'] = ({ items, shipping, paymentRef, pricing, method }) => {
     const subtotal = items.reduce((a, b) => a + b.product.price * b.qty, 0)
     const shippingFee = pricing?.shipping ?? 0
     const discount = pricing?.discount ?? 0
@@ -98,7 +99,7 @@ export function OrdersProvider({ children }: { children: React.ReactNode }) {
       id: makeOrderId(),
       createdAt: new Date().toISOString(),
       status: 'Processing',
-      payment: { method: 'UPI', status: 'Paid', reference: paymentRef },
+      payment: { method, status: 'Paid', reference: paymentRef },
       totals: { subtotal, shipping: shippingFee, discount, total },
       items: orderItems,
       shipping,

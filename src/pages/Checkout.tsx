@@ -54,6 +54,7 @@ export default function Checkout() {
                 const fallbackName = `${ship.first || ''} ${ship.last || ''}`.trim() || 'Guest'
                 const ord = placeOrder({
                   items: detailed,
+                  method: 'UPI',
                   shipping: {
                     name: fallbackName,
                     email: ship.email || 'guest@example.com',

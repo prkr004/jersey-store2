@@ -15,6 +15,7 @@ if (!apiKey) {
 
 // Reuse a single model instance.
 let _modelCache: { name: string; model: ReturnType<GoogleGenerativeAI['getGenerativeModel']> } | null = null
+let _cooldownUntil = 0 // ms timestamp until which we should not send requests
 
 const envModel = (import.meta.env.VITE_GEMINI_MODEL as string | undefined)?.trim()
 // Broader candidate list (order matters; fastest + cheaper first)
@@ -78,10 +79,27 @@ export async function sendChat(messages: ChatMessage[]) {
     .join('\n') + '\nAssistant:'
 
   try {
+    // Respect cooldown if previously rate-limited
+    const now = Date.now()
+    if (now < _cooldownUntil) {
+      const retryInMs = _cooldownUntil - now
+      const secs = Math.ceil(retryInMs / 1000)
+      return { reply: `I’m getting a lot of requests right now. Please try again in about ${secs}s.`, rateLimited: true, retryInMs }
+    }
     const { reply, model } = await generateWithFallback(prompt)
     return { reply, model }
   } catch (e: any) {
     const raw = e?.message || String(e)
+    // Detect rate limit and set a cooldown to prevent spamming the API
+    if (/rate|quota|429|RATE_LIMIT_EXCEEDED/i.test(raw)) {
+      const cooldownMs = 30_000
+      _cooldownUntil = Date.now() + cooldownMs
+      return {
+        reply: '',
+        rateLimited: true,
+        retryInMs: cooldownMs
+      }
+    }
     const suggestions = `Troubleshooting:\n1. Confirm the Generative Language API is enabled for your Google Cloud project.\n2. Verify the key in .env.local matches the project with access.\n3. Try setting VITE_GEMINI_MODEL=gemini-pro or gemini-1.0-pro.\n4. Regenerate an API key if issues persist.`
     return { reply: `Error contacting model: ${raw}\n\n${suggestions}` }
   }

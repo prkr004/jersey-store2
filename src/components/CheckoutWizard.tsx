@@ -4,6 +4,7 @@ import MotionButton from './MotionButton'
 import { currency, genOrderId } from '../utils/format'
 import UPIPayment from './UPIPayment'
 import type { CartItem, ProductSnapshot } from '../context/CartContext'
+import { useOrders } from '../context/OrdersContext'
 
 interface WizardProps {
   total: number
@@ -21,6 +22,7 @@ export default function CheckoutWizard({ total, items, onClose, onComplete }: Wi
   const [payMode, setPayMode] = useState<'upi' | 'card' | 'netbanking' | 'wallet'>('upi')
   const [paid, setPaid] = useState(false)
   const navigate = useNavigate()
+  const { placeOrder } = useOrders()
 
   function next() {
     if (step === 'intro') setStep('info')
@@ -62,14 +64,20 @@ export default function CheckoutWizard({ total, items, onClose, onComplete }: Wi
               onBack={back}
               onPaid={() => {
                 setPaid(true)
-                const order = {
-                  id: genOrderId(),
-                  items: items.map(it => ({ name: it.product.name, qty: it.qty, price: it.product.price, size: it.size })),
-                  total,
-                  eta: buildETA(),
-                  customer: info
-                }
+                // Persist order in session (per-account if signed in)
+                const ord = placeOrder({
+                  items,
+                  method: payMode === 'upi' ? 'UPI' : payMode === 'card' ? 'CARD' : payMode === 'netbanking' ? 'NETBANKING' : 'WALLET',
+                  shipping: { name: info.name, email: info.email, address: info.address, city: info.city, postalCode: info.postal },
+                  paymentRef: genOrderId()
+                })
                 onComplete()
+                const order = {
+                  id: ord.id,
+                  items: ord.items.map(it => ({ name: it.name, qty: it.qty, price: it.price, size: it.size })),
+                  total: ord.totals.total,
+                  eta: buildETA(),
+                }
                 navigate('/order/confirmation', { state: { status: 'success', order } })
               }}
             />
@@ -126,15 +134,15 @@ function Intro({ accepted, onAccept, onContinue, total }: { accepted: boolean; o
 function InfoForm({ info, setInfo, onContinue, onBack }: { info: any; setInfo: (i: any) => void; onContinue: () => void; onBack: () => void }) {
   const [submitted, setSubmitted] = useState(false)
   function update(key: string, val: string) { setInfo({ ...info, [key]: val }) }
-  const emailValid = /.+@.+\..+/.test(info.email)
-  const phoneValid = !info.phone || /^(\+?\d[\d\s-]{7,15})$/.test(info.phone)
+    const emailValid = /.+@.+\..+/.test(info.email)
+   const phoneValid = true // phone is optional; no strict validation
   const postalValid = !info.postal || info.postal.length >= 4
   const errors: Record<string,string> = {}
   if (!info.name) errors.name = 'Name is required'
   if (info.email && !emailValid) errors.email = 'Enter a valid email'
   if (!info.email) errors.email = 'Email is required'
   if (!info.address) errors.address = 'Address is required'
-  if (info.phone && !phoneValid) errors.phone = 'Invalid phone number'
+   // No strict phone validation
   if (info.postal && !postalValid) errors.postal = 'Postal code too short'
   const disabled = Object.keys(errors).length > 0
   const showErrors = (field: string) => submitted || info[field]
@@ -161,7 +169,7 @@ function InfoForm({ info, setInfo, onContinue, onBack }: { info: any; setInfo: (
         </div>
         <div>
           <label className="block text-xs font-medium mb-1 uppercase tracking-wide text-slate-500">Phone (Optional)</label>
-          <input aria-invalid={!!errors.phone} placeholder="Phone" value={info.phone} onChange={e=>update('phone', e.target.value)} className={`${baseInput} ${errors.phone && showErrors('phone') ? 'border-red-500 focus:ring-red-500/40' : 'border-slate-300/60 dark:border-slate-700'}`} />
+           <input placeholder="Phone" value={info.phone} onChange={e=>update('phone', e.target.value)} className={`${baseInput} border-slate-300/60 dark:border-slate-700`} />
           {errors.phone && showErrors('phone') && <p className="mt-1 text-[11px] text-red-600">{errors.phone}</p>}
         </div>
         <div>

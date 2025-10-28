@@ -1,5 +1,4 @@
-import { useMemo } from 'react'
-import { sports as allSports, teams as allTeams } from '../data/product'
+import { sports as allSports } from '../data/product'
 import { currency } from '../utils/format'
 import MotionButton from './MotionButton'
 import { useSearchParams } from 'react-router-dom'
@@ -9,7 +8,7 @@ export default function FilterBar() {
 
   const q = params.get('q') ?? ''
   const sport = params.get('sport') ?? ''
-  const team = params.get('team') ?? ''
+  // Removed team filter
   // Force INR price band between 1000 and 3000 irrespective of original static dataset pricing extremes.
   const RANGE_MIN = 1000
   const RANGE_MAX = 3000
@@ -26,7 +25,7 @@ export default function FilterBar() {
     setParams(new URLSearchParams(), { replace: true })
   }
 
-  const teams = useMemo(() => allTeams, [])
+  // no teams list
 
   return (
     <div className="rounded-2xl border border-slate-200/60 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 flex flex-wrap items-center gap-3">
@@ -48,16 +47,7 @@ export default function FilterBar() {
         ))}
       </select>
 
-      <select
-        value={team}
-        onChange={(e) => update('team', e.target.value)}
-        className="rounded-xl bg-slate-100 dark:bg-slate-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-400"
-      >
-        <option value="">All Teams</option>
-        {teams.map((t) => (
-          <option key={t} value={t}>{t}</option>
-        ))}
-      </select>
+      {null}
 
       <div className="flex items-center gap-2">
         <label className="text-sm text-slate-600 dark:text-slate-400">Max Price:</label>

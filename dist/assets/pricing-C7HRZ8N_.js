@@ -1,0 +1,1 @@
+let o=null;const r=()=>(o||(o=Math.floor(Math.random()*1e9).toString(36)),o),I=e=>{let t=2166136261;for(let n=0;n<e.length;n++)t^=e.charCodeAt(n),t=t+((t<<1)+(t<<4)+(t<<7)+(t<<8)+(t<<24))>>>0;return t>>>0},c=e=>{const t=r(),s=I(e+":"+t)/4294967295;return Math.round(1e3+s*2e3)},M={MIN:1e3,MAX:3e3};export{M as P,c as g};

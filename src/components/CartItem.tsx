@@ -44,17 +44,32 @@ export default function CartItem({
           </button>
         </div>
         <div className="mt-2">
-          <select
-            value={qty}
-            onChange={(e) => update(id, size, Number(e.target.value))}
-            className="rounded-lg bg-slate-100 dark:bg-slate-800 px-2 py-1"
-          >
-            {Array.from({ length: 10 }).map((_, i) => (
-              <option key={i + 1} value={i + 1}>{i + 1}</option>
-            ))}
-          </select>
+          <QuantityStepper value={qty} onChange={(n) => update(id, size, n)} />
         </div>
       </div>
+    </div>
+  )
+}
+
+function QuantityStepper({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const min = 1
+  const max = 10
+  const dec = () => onChange(Math.max(min, value - 1))
+  const inc = () => onChange(Math.min(max, value + 1))
+  return (
+    <div className="inline-flex items-center rounded-lg border border-slate-300 dark:border-slate-700 overflow-hidden">
+      <button onClick={dec} className="px-3 py-1 text-sm hover:bg-slate-100 dark:hover:bg-slate-800" aria-label="Decrease quantity">−</button>
+      <input
+        value={value}
+        onChange={(e) => {
+          const n = Number(e.target.value.replace(/[^\d]/g, ''))
+          if (!isNaN(n)) onChange(Math.max(min, Math.min(max, n)))
+        }}
+        className="w-10 text-center bg-transparent text-sm py-1 focus:outline-none"
+        inputMode="numeric"
+        aria-label="Quantity"
+      />
+      <button onClick={inc} className="px-3 py-1 text-sm hover:bg-slate-100 dark:hover:bg-slate-800" aria-label="Increase quantity">+</button>
     </div>
   )
 }

@@ -1,0 +1,1 @@
+const n=r=>new Intl.NumberFormat("en-IN",{style:"currency",currency:"INR",maximumFractionDigits:0}).format(r);function e(){const r=Date.now().toString(36),t=Math.random().toString(36).slice(2,8);return`ORD-${r}-${t}`.toUpperCase()}export{n as c,e as g};

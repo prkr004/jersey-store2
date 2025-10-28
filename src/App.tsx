@@ -16,6 +16,9 @@ const Account = lazy(() => import('./pages/Account'))
 const About = lazy(() => import('./pages/About'))
 const Contact = lazy(() => import('./pages/Contact'))
 const OrderConfirmation = lazy(() => import('./pages/OrderConfirmation'))
+const Privacy = lazy(() => import('./pages/Privacy'))
+const Terms = lazy(() => import('./pages/Terms'))
+const Cookies = lazy(() => import('./pages/Cookies'))
 const NotFound = lazy(() => import('./pages/NotFound'))
 
 export default function App() {
@@ -122,6 +125,36 @@ export default function App() {
               <PageTransition>
                 <Suspense fallback={<PageSkeleton />}>
                   <Contact />
+                </Suspense>
+              </PageTransition>
+            }
+          />
+          <Route
+            path="/privacy"
+            element={
+              <PageTransition>
+                <Suspense fallback={<PageSkeleton />}>
+                  <Privacy />
+                </Suspense>
+              </PageTransition>
+            }
+          />
+          <Route
+            path="/terms"
+            element={
+              <PageTransition>
+                <Suspense fallback={<PageSkeleton />}>
+                  <Terms />
+                </Suspense>
+              </PageTransition>
+            }
+          />
+          <Route
+            path="/cookies"
+            element={
+              <PageTransition>
+                <Suspense fallback={<PageSkeleton />}>
+                  <Cookies />
                 </Suspense>
               </PageTransition>
             }

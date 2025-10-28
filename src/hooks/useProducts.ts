@@ -1,19 +1,31 @@
 import { useEffect, useState } from 'react'
 import { supabase, type DbProduct } from '../lib/supabaseClient'
 import type { Product } from '../data/product'
+import { getSportCover } from '../data/product'
 
 // Map DB row to existing Product UI shape. Because DB schema is lean we fill missing fields with sensible defaults.
+function deriveSport(p: DbProduct): Product['sport'] {
+  const text = `${p.name} ${p.team} ${p.slug}`.toLowerCase()
+  if (/basket|nba/.test(text)) return 'Basketball'
+  if (/crick|ipl|odi|t20/.test(text)) return 'Cricket'
+  if (/baseball|mlb/.test(text)) return 'Baseball'
+  if (/hockey|nhl|ice/.test(text)) return 'Hockey'
+  return 'Football'
+}
+
 function mapToProduct(p: DbProduct): Product {
   // Choose slug as the stable public id for routing; fallback to uuid if slug missing.
   const publicId = p.slug || p.id
+  const sport = (p as any).sport || deriveSport(p)
+  const images = (p.images && p.images.length ? p.images : [getSportCover(sport), getSportCover(sport)])
   return {
     id: publicId,
     name: p.name,
     team: p.team ?? 'Unknown Team',
-    sport: 'Football', // Placeholder until sport column added.
+    sport,
     price: p.price_cents / 100,
     rating: 4.5, // Default placeholder rating.
-    images: p.images ?? [],
+    images,
     colors: [],
     sizes: p.sizes ?? [],
     description: p.description ?? '',

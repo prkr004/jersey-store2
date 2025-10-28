@@ -1,15 +1,18 @@
 import { useState, useRef, useEffect } from 'react'
 import { sendChat } from '../services/chat'
+import type { ChatMessage as Message } from '../services/chat'
 import { mdToHtml } from '../utils/formatMarkdown'
 // Chatbot uses /api/chat proxy -> Gemini. Set GEMINI_API_KEY in deployment environment (see api/README_CHAT.md).
 
-interface Message { role: 'user' | 'assistant'; content: string }
+// Use shared ChatMessage type from chat service
 
 export default function Chatbot() {
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const [cooldownMs, setCooldownMs] = useState(0)
+  const [tick, setTick] = useState(0)
   const listRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
@@ -19,20 +22,43 @@ export default function Chatbot() {
   }, [messages, loading])
 
   async function handleSend() {
-    if (!input.trim() || loading) return
-    const next = [...messages, { role: 'user', content: input.trim() }]
+    if (!input.trim() || loading || cooldownMs > 0) return
+    const next: Message[] = [...messages, { role: 'user', content: input.trim() }]
     setMessages(next)
     setInput('')
     setLoading(true)
     try {
-      const resp = await sendChat(next.slice(-8)) // keep last 8 turns
-      setMessages([...next, { role: 'assistant', content: resp.reply }])
+      const resp: any = await sendChat(next.slice(-8)) // keep last 8 turns
+      if (resp?.rateLimited && typeof resp?.retryInMs === 'number') {
+        setCooldownMs(resp.retryInMs)
+        // Do not append a chat message on rate limit; banner below will inform the user.
+        return
+      }
+      if (resp?.reply) {
+        setMessages([...next, { role: 'assistant', content: resp.reply } as Message])
+      }
     } catch (e: any) {
-      setMessages([...next, { role: 'assistant', content: 'Error: ' + e.message }])
+      setMessages([...next, { role: 'assistant', content: 'Error: ' + e.message } as Message])
     } finally {
       setLoading(false)
     }
   }
+
+  // Cooldown countdown
+  useEffect(() => {
+    if (cooldownMs <= 0) return
+    const startedAt = Date.now()
+    const t = setInterval(() => {
+      const elapsed = Date.now() - startedAt
+      const remaining = Math.max(0, cooldownMs - elapsed)
+      setTick(remaining)
+      if (remaining === 0) {
+        setCooldownMs(0)
+        clearInterval(t)
+      }
+    }, 250)
+    return () => clearInterval(t)
+  }, [cooldownMs])
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
@@ -72,6 +98,11 @@ export default function Chatbot() {
             {!messages.length && !loading && <div className="text-xs text-slate-400">Ask me about products, sizes, or general info.</div>}
           </div>
           <div className="p-2 border-t dark:border-slate-700">
+            {cooldownMs > 0 && (
+              <div className="mb-2 rounded-md border border-amber-300 bg-amber-50 text-amber-800 text-xs px-2 py-1">
+                Chat is cooling down due to rate limits. Please wait {Math.ceil(tick / 1000)}s.
+              </div>
+            )}
             <form onSubmit={(e) => { e.preventDefault(); handleSend() }} className="flex gap-2">
               <input
                 value={input}
@@ -79,7 +110,7 @@ export default function Chatbot() {
                 placeholder="Ask about products, sizing, deals..."
                 className="flex-1 rounded-md bg-slate-100 dark:bg-slate-800 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
               />
-              <button type="submit" disabled={loading} className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white px-3 py-1 rounded-md text-sm">Send</button>
+              <button type="submit" disabled={loading || cooldownMs > 0} className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white px-3 py-1 rounded-md text-sm">Send</button>
             </form>
           </div>
         </div>

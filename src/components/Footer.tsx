@@ -60,9 +60,9 @@ export default function Footer() {
         <div className="mt-10 flex items-center justify-between text-xs text-slate-500">
           <span>© {new Date().getFullYear()} JerseyX. All rights reserved.</span>
           <div className="flex gap-4">
-            <a href="#">Privacy</a>
-            <a href="#">Terms</a>
-            <a href="#">Cookies</a>
+            <Link to="/privacy" className="hover:text-brand-600">Privacy</Link>
+            <Link to="/terms" className="hover:text-brand-600">Terms</Link>
+            <Link to="/cookies" className="hover:text-brand-600">Cookies</Link>
           </div>
         </div>
       </div>

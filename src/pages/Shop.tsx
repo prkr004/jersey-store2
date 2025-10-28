@@ -10,7 +10,7 @@ export default function Shop() {
   const [params] = useSearchParams()
   const q = (params.get('q') ?? '').toLowerCase()
   const sport = params.get('sport') ?? ''
-  const team = params.get('team') ?? ''
+  // Team filter removed
   const priceParam = Number(params.get('price'))
   const price = priceParam ? Math.min(Math.max(priceParam, PRICE_RANGE.MIN), PRICE_RANGE.MAX) : Infinity
 
@@ -29,11 +29,10 @@ export default function Shop() {
         ? [p.name, p.team, productSport].some((f) => f.toLowerCase().includes(q))
         : true
       const matchesSport = sport ? productSport === sport : true
-      const matchesTeam = team ? p.team === team : true
       const matchesPrice = isFinite(price) ? p.price <= price : true
-      return matchesQ && matchesSport && matchesTeam && matchesPrice
+      return matchesQ && matchesSport && matchesPrice
     })
-  }, [q, sport, team, price, pricedSource])
+  }, [q, sport, price, pricedSource])
 
   return (
     <div className="container mx-auto px-4 py-10">
