@@ -10,6 +10,7 @@ import { motion } from 'framer-motion'
 import { useProductBySlug } from '../hooks/useProducts'
 import { getRandomPrice } from '../utils/pricing'
 import { useWishlist } from '../context/WishlistContext'
+import CustomizeModal, { CustomizeSpec } from '../components/CustomizeModal'
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>() // currently using id path param
@@ -31,6 +32,8 @@ export default function ProductDetail() {
   const [added, setAdded] = useState(false)
   const navigate = useNavigate()
   const { toggle: toggleWishlist, contains } = useWishlist()
+  const [custom, setCustom] = useState<CustomizeSpec | null>(null)
+  const [customOpen, setCustomOpen] = useState(false)
 
   useEffect(() => {
     if (product) setSize(product.sizes[0] ?? '')
@@ -109,6 +112,14 @@ export default function ProductDetail() {
                 </button>
               ))}
             </div>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <MotionButton variant="outline" onClick={() => setCustomOpen(true)}>Customize</MotionButton>
+              {custom && (
+                <span className="text-xs px-2 py-1 rounded-full border border-slate-300 dark:border-slate-700 uppercase tracking-wide">
+                  {custom.name} #{custom.number} • {custom.font}
+                </span>
+              )}
+            </div>
           </div>
 
           <div className="mt-6 flex flex-wrap items-center gap-3">
@@ -123,7 +134,7 @@ export default function ProductDetail() {
                   sport: (product as any).sport || 'Sport',
                   sizes: product.sizes,
                   description: product.description
-                })
+                }, custom || undefined)
                 setAdded(true)
                 setTimeout(() => setAdded(false), 3000)
               }}
@@ -147,7 +158,7 @@ export default function ProductDetail() {
                   sport: (product as any).sport || 'Sport',
                   sizes: product.sizes,
                   description: product.description
-                })
+                }, custom || undefined)
                 // Navigate to cart and trigger checkout wizard via state flag
                 navigate('/cart', { state: { checkout: true } })
               }}
@@ -181,6 +192,14 @@ export default function ProductDetail() {
             ))}
           </div>
         </div>
+      )}
+      {customOpen && (
+        <CustomizeModal
+          onClose={() => setCustomOpen(false)}
+          onSave={(spec) => { setCustom(spec); setCustomOpen(false) }}
+          colors={product.colors}
+          initial={custom || undefined}
+        />
       )}
     </div>
   )

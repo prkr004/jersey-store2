@@ -4,23 +4,30 @@ import { productsById, getSportCover } from '../data/product'
 // NOTE: Session-only auth and no backend storage currently; do not sync cart to DB.
 
 export type ProductSnapshot = Pick<Product, 'id' | 'name' | 'price' | 'images' | 'team' | 'sport' | 'sizes' | 'description'>
+export type CustomSpec = {
+  name: string
+  number: string
+  font?: 'classic' | 'block'
+  color?: string
+}
 export type CartItem = {
   id: string // product id (slug or legacy id)
   size: string
   qty: number
   product?: ProductSnapshot // snapshot to avoid relying solely on in-memory catalogs
+  custom?: CustomSpec
 }
 
 type CartContextType = {
   items: CartItem[]
-  add: (id: string, size: string, qty?: number, productSnapshot?: ProductSnapshot) => void
+  add: (id: string, size: string, qty?: number, productSnapshot?: ProductSnapshot, custom?: CustomSpec) => void
   remove: (id: string, size: string) => void
   update: (id: string, size: string, qty: number) => void
   clear: () => void
   count: number
   total: number
   detailed: Array<CartItem & { product: ProductSnapshot }>
-  replaceWithSingle: (id: string, size: string, qty: number, productSnapshot?: ProductSnapshot) => void
+  replaceWithSingle: (id: string, size: string, qty: number, productSnapshot?: ProductSnapshot, custom?: CustomSpec) => void
 }
 
 const CartContext = createContext<CartContextType | null>(null)
@@ -37,21 +44,21 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items))
   }, [items])
 
-  const add: CartContextType['add'] = (id, size, qty = 1, productSnapshot) => {
+  const add: CartContextType['add'] = (id, size, qty = 1, productSnapshot, custom) => {
     setItems((prev) => {
-      const i = prev.findIndex((p) => p.id === id && p.size === size)
+      const i = prev.findIndex((p) => p.id === id && p.size === size && JSON.stringify(p.custom||null) === JSON.stringify(custom||null))
       if (i > -1) {
         const copy = [...prev]
         const existing = copy[i]
-        copy[i] = { ...existing, qty: existing.qty + qty, product: existing.product || productSnapshot }
+        copy[i] = { ...existing, qty: existing.qty + qty, product: existing.product || productSnapshot, custom: existing.custom || custom }
         return copy
       }
-      return [...prev, { id, size, qty, product: productSnapshot }]
+      return [...prev, { id, size, qty, product: productSnapshot, custom }]
     })
   }
 
-  const replaceWithSingle: CartContextType['replaceWithSingle'] = (id, size, qty, productSnapshot) => {
-    setItems([{ id, size, qty, product: productSnapshot }])
+  const replaceWithSingle: CartContextType['replaceWithSingle'] = (id, size, qty, productSnapshot, custom) => {
+    setItems([{ id, size, qty, product: productSnapshot, custom }])
   }
 
   const remove: CartContextType['remove'] = (id, size) =>

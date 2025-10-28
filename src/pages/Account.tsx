@@ -87,8 +87,20 @@ function Orders() {
                   <div key={i} className="p-4 sm:p-5 flex items-center gap-3 text-sm">
                     <img src={it.images?.[0]} onError={(e:any)=>{e.currentTarget.src = it.images?.[1] || it.images?.[0]}} alt={it.name} className="w-14 h-14 rounded-lg object-cover border border-slate-200/60 dark:border-slate-800" />
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium truncate">{it.name}</div>
-                      <div className="text-xs text-slate-500">Size {it.size} • Qty {it.qty}</div>
+                      <div className="font-medium truncate flex items-center gap-2">
+                        <span className="truncate">{it.name}</span>
+                        {it.custom && (
+                          <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-800">Customized</span>
+                        )}
+                      </div>
+                      <div className="text-xs text-slate-500">
+                        Size {it.size} • Qty {it.qty}
+                        {it.custom && (it.custom.name || it.custom.number) && (
+                          <span className="block sm:inline sm:ml-2 text-slate-600 dark:text-slate-400">
+                            Custom: {it.custom.name ? it.custom.name.toUpperCase() : ''}{it.custom.number ? ` #${it.custom.number}` : ''}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <div className="font-medium">{currency(it.price * it.qty)}</div>
                   </div>
@@ -112,6 +124,7 @@ function Login() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
   
@@ -129,6 +142,10 @@ function Login() {
   
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
+    setSubmitted(true)
+    const emailValid = /.+@.+\..+/.test(email)
+    const passwordValid = password.length >= 6
+    if (!emailValid || !passwordValid) return
     setLoading(true)
     const { error } = await signIn(email, password)
     if (!error) {
@@ -148,8 +165,34 @@ function Login() {
         </div>
       )}
       <form onSubmit={onSubmit} className="grid gap-4 mt-4">
-        <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="Email" type="email" required className="rounded-xl bg-slate-100 dark:bg-slate-900 px-4 py-2" />
-        <input value={password} onChange={e=>setPassword(e.target.value)} placeholder="Password" type="password" required className="rounded-xl bg-slate-100 dark:bg-slate-900 px-4 py-2" />
+        <div>
+          <input
+            value={email}
+            onChange={e=>setEmail(e.target.value)}
+            placeholder="Email"
+            type="email"
+            required
+            aria-invalid={submitted && !/.+@.+\..+/.test(email)}
+            className={`rounded-xl w-full bg-slate-100 dark:bg-slate-900 px-4 py-2 ${submitted && !/.+@.+\..+/.test(email) ? 'border border-red-500' : ''}`}
+          />
+          {submitted && !/.+@.+\..+/.test(email) && (
+            <p className="text-[11px] text-red-600 mt-1">Enter a valid email address.</p>
+          )}
+        </div>
+        <div>
+          <input
+            value={password}
+            onChange={e=>setPassword(e.target.value)}
+            placeholder="Password (min 6)"
+            type="password"
+            required
+            aria-invalid={submitted && password.length < 6}
+            className={`rounded-xl w-full bg-slate-100 dark:bg-slate-900 px-4 py-2 ${submitted && password.length < 6 ? 'border border-red-500' : ''}`}
+          />
+          {submitted && password.length < 6 && (
+            <p className="text-[11px] text-red-600 mt-1">Password must be at least 6 characters.</p>
+          )}
+        </div>
         {error && <div className="text-sm text-red-600">{error}</div>}
         <MotionButton disabled={loading}>{loading ? 'Signing in...' : 'Sign In'}</MotionButton>
       </form>
@@ -161,8 +204,10 @@ function Signup() {
   const { signUp, user } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [name, setName] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
   
@@ -180,8 +225,13 @@ function Signup() {
   
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
+    setSubmitted(true)
+    const emailValid = /.+@.+\..+/.test(email)
+    const passwordValid = password.length >= 6
+    const nameValid = name.trim().length >= 2
+    if (!emailValid || !passwordValid || !nameValid) return
     setLoading(true)
-    const { error } = await signUp(email, password)
+    const { error } = await signUp(email, password, name)
     if (!error) {
       // Success - redirect to return path
       navigate(returnTo, { replace: true })
@@ -199,10 +249,49 @@ function Signup() {
         </div>
       )}
       <form onSubmit={onSubmit} className="grid gap-4 mt-4">
-        <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="Email" type="email" required className="rounded-xl bg-slate-100 dark:bg-slate-900 px-4 py-2" />
-        <input value={password} onChange={e=>setPassword(e.target.value)} placeholder="Password" type="password" required className="rounded-xl bg-slate-100 dark:bg-slate-900 px-4 py-2" />
+        <div>
+          <input
+            value={name}
+            onChange={e=>setName(e.target.value)}
+            placeholder="Full name"
+            required
+            aria-invalid={submitted && name.trim().length < 2}
+            className={`rounded-xl w-full bg-slate-100 dark:bg-slate-900 px-4 py-2 ${submitted && name.trim().length < 2 ? 'border border-red-500' : ''}`}
+          />
+          {submitted && name.trim().length < 2 && (
+            <p className="text-[11px] text-red-600 mt-1">Enter at least 2 characters.</p>
+          )}
+        </div>
+        <div>
+          <input
+            value={email}
+            onChange={e=>setEmail(e.target.value)}
+            placeholder="Email"
+            type="email"
+            required
+            aria-invalid={submitted && !/.+@.+\..+/.test(email)}
+            className={`rounded-xl w-full bg-slate-100 dark:bg-slate-900 px-4 py-2 ${submitted && !/.+@.+\..+/.test(email) ? 'border border-red-500' : ''}`}
+          />
+          {submitted && !/.+@.+\..+/.test(email) && (
+            <p className="text-[11px] text-red-600 mt-1">Enter a valid email address.</p>
+          )}
+        </div>
+        <div>
+          <input
+            value={password}
+            onChange={e=>setPassword(e.target.value)}
+            placeholder="Password (min 6)"
+            type="password"
+            required
+            aria-invalid={submitted && password.length < 6}
+            className={`rounded-xl w-full bg-slate-100 dark:bg-slate-900 px-4 py-2 ${submitted && password.length < 6 ? 'border border-red-500' : ''}`}
+          />
+          {submitted && password.length < 6 && (
+            <p className="text-[11px] text-red-600 mt-1">Password must be at least 6 characters.</p>
+          )}
+        </div>
         {error && <div className="text-sm text-red-600">{error}</div>}
-        <MotionButton disabled={loading}>{loading ? 'Creating...' : 'Create Account'}</MotionButton>
+        <MotionButton disabled={loading}>{loading ? 'Creating account...' : 'Create Account'}</MotionButton>
       </form>
     </div>
   )

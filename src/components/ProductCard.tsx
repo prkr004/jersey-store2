@@ -25,7 +25,8 @@ export default function ProductCard({ product }: { product: Product }) {
             className="h-full w-full object-cover"
             onError={({ currentTarget }) => {
               currentTarget.onerror = null
-              currentTarget.src = product.images?.[1] ?? 'https://images.unsplash.com/photo-1655089131279-8029e8a21ac6?auto=format&fit=crop&w=1200&q=60'
+              const sport = (product as any).sport || 'Football'
+              currentTarget.src = product.images?.[1] ?? getSportCover(sport)
             }}
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.4 }}

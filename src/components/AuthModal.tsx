@@ -53,6 +53,7 @@ function LoginForm({ onSuccess }: { onSuccess: () => void }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [submitted, setSubmitted] = useState(false)
 
   const emailValid = /.+@.+\..+/.test(email)
   const passwordValid = password.length >= 6
@@ -61,6 +62,7 @@ function LoginForm({ onSuccess }: { onSuccess: () => void }) {
   return (
     <form className="space-y-4" onSubmit={async (e) => {
       e.preventDefault()
+      setSubmitted(true)
       if (disabled) return
       const { error } = await signIn(email, password)
       if (error) setError(error)
@@ -68,12 +70,13 @@ function LoginForm({ onSuccess }: { onSuccess: () => void }) {
     }}>
       <div>
         <label className="block text-xs font-medium mb-1 uppercase tracking-wide text-slate-500">Email</label>
-        <input className="w-full rounded-xl bg-slate-100 dark:bg-slate-800 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-brand-400" type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@example.com" required />
+        <input aria-invalid={!emailValid && submitted} className={`w-full rounded-xl bg-slate-100 dark:bg-slate-800 px-4 py-2 focus:outline-none focus:ring-2 ${!emailValid && submitted ? 'border border-red-500 focus:ring-red-400' : 'focus:ring-brand-400'}`} type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@example.com" required />
+        {!emailValid && submitted && <p className="text-[11px] text-red-600 mt-1">Enter a valid email address.</p>}
       </div>
       <div>
         <label className="block text-xs font-medium mb-1 uppercase tracking-wide text-slate-500">Password</label>
-        <input className="w-full rounded-xl bg-slate-100 dark:bg-slate-800 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-brand-400" type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" required />
-        <p className="text-[11px] text-slate-500 mt-1">At least 6 characters</p>
+        <input aria-invalid={!passwordValid && submitted} className={`w-full rounded-xl bg-slate-100 dark:bg-slate-800 px-4 py-2 focus:outline-none focus:ring-2 ${!passwordValid && submitted ? 'border border-red-500 focus:ring-red-400' : 'focus:ring-brand-400'}`} type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" required />
+        <p className="text-[11px] mt-1 ${passwordValid ? 'text-slate-500' : 'text-red-600'}">At least 6 characters</p>
       </div>
       {error && <div className="text-sm text-red-600">{error}</div>}
       <MotionButton disabled={disabled} className="w-full">{loading ? 'Signing in…' : 'Sign In'}</MotionButton>
@@ -87,6 +90,7 @@ function SignupForm({ onSuccess }: { onSuccess: () => void }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [submitted, setSubmitted] = useState(false)
 
   const emailValid = /.+@.+\..+/.test(email)
   const passwordValid = password.length >= 6
@@ -96,6 +100,7 @@ function SignupForm({ onSuccess }: { onSuccess: () => void }) {
   return (
     <form className="space-y-4" onSubmit={async (e) => {
       e.preventDefault()
+      setSubmitted(true)
       if (disabled) return
       const { error } = await signUp(email, password, name)
       if (error) setError(error)
@@ -103,16 +108,18 @@ function SignupForm({ onSuccess }: { onSuccess: () => void }) {
     }}>
       <div>
         <label className="block text-xs font-medium mb-1 uppercase tracking-wide text-slate-500">Full Name</label>
-        <input className="w-full rounded-xl bg-slate-100 dark:bg-slate-800 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-brand-400" value={name} onChange={e=>setName(e.target.value)} placeholder="Your name" required />
+        <input aria-invalid={!nameValid && submitted} className={`w-full rounded-xl bg-slate-100 dark:bg-slate-800 px-4 py-2 focus:outline-none focus:ring-2 ${!nameValid && submitted ? 'border border-red-500 focus:ring-red-400' : 'focus:ring-brand-400'}`} value={name} onChange={e=>setName(e.target.value)} placeholder="Your name" required />
+        {!nameValid && submitted && <p className="text-[11px] text-red-600 mt-1">Enter at least 2 characters.</p>}
       </div>
       <div>
         <label className="block text-xs font-medium mb-1 uppercase tracking-wide text-slate-500">Email</label>
-        <input className="w-full rounded-xl bg-slate-100 dark:bg-slate-800 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-brand-400" type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@example.com" required />
+        <input aria-invalid={!emailValid && submitted} className={`w-full rounded-xl bg-slate-100 dark:bg-slate-800 px-4 py-2 focus:outline-none focus:ring-2 ${!emailValid && submitted ? 'border border-red-500 focus:ring-red-400' : 'focus:ring-brand-400'}`} type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@example.com" required />
+        {!emailValid && submitted && <p className="text-[11px] text-red-600 mt-1">Enter a valid email address.</p>}
       </div>
       <div>
         <label className="block text-xs font-medium mb-1 uppercase tracking-wide text-slate-500">Password</label>
-        <input className="w-full rounded-xl bg-slate-100 dark:bg-slate-800 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-brand-400" type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" required />
-        <p className="text-[11px] text-slate-500 mt-1">At least 6 characters</p>
+        <input aria-invalid={!passwordValid && submitted} className={`w-full rounded-xl bg-slate-100 dark:bg-slate-800 px-4 py-2 focus:outline-none focus:ring-2 ${!passwordValid && submitted ? 'border border-red-500 focus:ring-red-400' : 'focus:ring-brand-400'}`} type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" required />
+        <p className={`text-[11px] mt-1 ${passwordValid ? 'text-slate-500' : 'text-red-600'}`}>At least 6 characters</p>
       </div>
       {error && <div className="text-sm text-red-600">{error}</div>}
       <MotionButton disabled={disabled} className="w-full">{loading ? 'Creating…' : 'Create Account'}</MotionButton>

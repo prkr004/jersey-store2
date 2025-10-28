@@ -16,7 +16,7 @@ export default function About() {
         <div className="rounded-3xl overflow-hidden">
           <img
             // Stable placeholder (swap with /public/about-hero.jpg for a real asset later)
-            src="https://placehold.co/1200x900/22c55e/ffffff?text=Performance+Jerseys"
+            src="about_us.jpg"
             alt="About JerseyX"
             className="w-full h-full object-cover"
           />

@@ -63,6 +63,7 @@ export default function Cart() {
                   img={it.product.images[0]}
                   name={it.product.name}
                   price={it.product.price}
+                  custom={(it as any).custom}
                 />
               </div>
             ))}

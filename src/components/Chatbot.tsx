@@ -13,6 +13,7 @@ export default function Chatbot() {
   const [loading, setLoading] = useState(false)
   const [cooldownMs, setCooldownMs] = useState(0)
   const [tick, setTick] = useState(0)
+  const [offline, setOffline] = useState(false)
   const listRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
@@ -34,6 +35,7 @@ export default function Chatbot() {
         // Do not append a chat message on rate limit; banner below will inform the user.
         return
       }
+      if (resp?.local) setOffline(true)
       if (resp?.reply) {
         setMessages([...next, { role: 'assistant', content: resp.reply } as Message])
       }
@@ -98,6 +100,11 @@ export default function Chatbot() {
             {!messages.length && !loading && <div className="text-xs text-slate-400">Ask me about products, sizes, or general info.</div>}
           </div>
           <div className="p-2 border-t dark:border-slate-700">
+            {offline && (
+              <div className="mb-2 rounded-md border border-sky-300 bg-sky-50 text-sky-800 text-xs px-2 py-1">
+                Assistant is in offline mode for now due to API limits. I’ll still answer basics like shipping, returns, sizing, and payments.
+              </div>
+            )}
             {cooldownMs > 0 && (
               <div className="mb-2 rounded-md border border-amber-300 bg-amber-50 text-amber-800 text-xs px-2 py-1">
                 Chat is cooling down due to rate limits. Please wait {Math.ceil(tick / 1000)}s.

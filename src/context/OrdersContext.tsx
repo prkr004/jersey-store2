@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { useAuth } from './AuthContext'
-import type { CartItem, ProductSnapshot } from './CartContext'
+import type { CartItem, ProductSnapshot, CustomSpec } from './CartContext'
 
 export type OrderItem = {
   id: string
@@ -11,6 +11,7 @@ export type OrderItem = {
   images: string[]
   team?: string
   sport?: string
+  custom?: CustomSpec
 }
 
 export type Order = {
@@ -93,6 +94,7 @@ export function OrdersProvider({ children }: { children: React.ReactNode }) {
       images: it.product.images,
       team: it.product.team,
       sport: it.product.sport,
+      custom: it.custom,
     }))
 
     const ord: Order = {

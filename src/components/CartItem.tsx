@@ -9,7 +9,8 @@ export default function CartItem({
   qty,
   img,
   name,
-  price
+  price,
+  custom
 }: {
   id: string
   size: string
@@ -17,6 +18,7 @@ export default function CartItem({
   img: string
   name: string
   price: number
+  custom?: { name: string; number: string; font?: string; color?: string }
 }) {
   const { update, remove } = useCart()
   return (
@@ -37,6 +39,11 @@ export default function CartItem({
           <div>
             <Link to={`/product/${id}`} className="font-medium hover:text-brand-600">{name}</Link>
             <div className="text-sm text-slate-500 dark:text-slate-400">Size: {size}</div>
+            {custom && (
+              <div className="mt-1 text-xs text-slate-600 dark:text-slate-400">
+                Custom: <span className="font-medium uppercase tracking-wide">{custom.name}</span> #{custom.number}
+              </div>
+            )}
             <div className="mt-1 font-semibold">{currency(price)}</div>
           </div>
           <button onClick={() => remove(id, size)} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
