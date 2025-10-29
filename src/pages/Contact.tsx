@@ -16,11 +16,28 @@ export default function Contact() {
         </div>
         <div className="rounded-2xl border border-slate-200/60 dark:border-slate-800 p-6">
           <h2 className="font-semibold mb-4">Our Studio</h2>
-          <p className="text-sm text-slate-600 dark:text-slate-400">123 Arena Blvd, Suite 7, Sports City</p>
-          <p className="text-sm text-slate-600 dark:text-slate-400">Email: support@jerseyx.example</p>
+          <p className="text-sm text-slate-600 dark:text-slate-400">MPSTME, Opp. Copper Hospital, Vile Parle West, Mumbai - 400056</p>
+          <p className="text-sm text-slate-600 dark:text-slate-400">Email: support@jerseyx.com</p>
           <p className="text-sm text-slate-600 dark:text-slate-400">Phone: (555) 123-4567</p>
           <div className="mt-4">
-            <div className="w-full h-48 rounded-xl bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-500">Map Placeholder</div>
+            <div className="relative w-full h-64 sm:h-72 lg:h-80 rounded-xl overflow-hidden border border-slate-200/60 dark:border-slate-800">
+              <iframe
+                title="MPSTME Location Map"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                className="absolute inset-0 w-full h-full"
+                src="https://www.google.com/maps?q=MPSTME%2C%20Opp.%20Copper%20Hospital%2C%20Vile%20Parle%20West%2C%20Mumbai%20-%20400056&output=embed"
+                allowFullScreen
+              />
+            </div>
+            <a
+              href="https://www.google.com/maps/search/?api=1&query=MPSTME%2C%20Opp.%20Copper%20Hospital%2C%20Vile%20Parle%20West%2C%20Mumbai%20-%20400056"
+              target="_blank"
+              rel="noreferrer"
+              className="mt-2 inline-block text-sm text-indigo-600 dark:text-indigo-400 underline"
+            >
+              Open in Google Maps
+            </a>
           </div>
         </div>
       </div>
